@@ -19,11 +19,17 @@
     "url": "https://github.com/three4c/sakamichi_schedule/issues"
   },
   "homepage": "https://github.com/three4c/sakamichi_schedule#readme",
-  "dependencies": {},
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "puppeteer": "^13.4.1"
+  },
   "devDependencies": {
-    "typescript": "^4.6.2",
+    "@types/express": "^4.17.13",
     "@types/node": "^17.0.21",
+    "@types/puppeteer": "^5.4.5",
     "nodemon": "^2.0.15",
-    "ts-node": "^10.6.0"
+    "ts-node": "^10.6.0",
+    "typescript": "^4.6.2"
   }
 }
