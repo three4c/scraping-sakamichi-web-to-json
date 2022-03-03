@@ -7,42 +7,72 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-const scraping = async () => {
+interface ScheduleType {
+  href: string;
+  category: string;
+  time: string;
+  text: string;
+}
+
+const scraping = async (url: string) => {
   const browser = await puppeteer.launch({
     headless: false,
     args: ["--lang=ja"],
   });
-  const page = await browser.newPage();
 
-  await page.goto("https://www.nogizaka46.com/s/n46/media/list", {
+  const page = await browser.newPage();
+  await page.goto(url, {
     waitUntil: "networkidle0",
   });
 
   /** ログ */
-  page.on("console", (msg) => {
-    for (let i = 0; i < msg.args().length; ++i) {
-      console.log(`${i}: ${msg.args()[i]}`);
-    }
-  });
+  // page.on("console", (msg) => {
+  //   for (let i = 0; i < msg.args().length; ++i) {
+  //     console.log(`${i}: ${msg.args()[i]}`);
+  //   }
+  // });
 
   await page.waitForTimeout(1000);
 
-  const data = await page.$$eval(".sc--lists .sc--day .m--scone", (list) => {
-    return list.map((item) => ({
-      href: item.querySelector(".m--scone__a")?.getAttribute("href"),
-      category: item.querySelector(".m--scone__cat__name")?.textContent,
-      start: item.querySelector(".m--scone__start")?.textContent,
-      title: item.querySelector(".m--scone__ttl")?.textContent,
-    }));
+  const result = await page.$$eval(".sc--lists .sc--day", (element) => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+
+    return element.map((item) => {
+      const date = `${year}-${month}-${item
+        .querySelector(".sc--day__hd")
+        ?.getAttribute("id")}`;
+
+      const schedule: ScheduleType[] = [];
+      item.querySelectorAll(".m--scone").forEach((item) => {
+        schedule.push({
+          href: item.querySelector(".m--scone__a")?.getAttribute("href") || "",
+          category:
+            item.querySelector(".m--scone__cat__name")?.textContent || "",
+          time: item.querySelector(".m--scone__start")?.textContent || "",
+          text: item.querySelector(".m--scone__ttl")?.textContent || "",
+        });
+      });
+
+      return {
+        date,
+        schedule,
+      };
+    });
   });
 
-  console.log(data);
-
   await browser.close();
+  return result;
 };
 
-scraping();
+const main = async () => {
+  const result = await scraping("https://www.nogizaka46.com/s/n46/media/list");
+  console.log("result", JSON.stringify(result));
+};
 
-app.get("/", (req, res) => res.send("hoge"));
+main();
+
+app.get("/", (req, res) => res.json("Success Deploy"));
 app.listen(PORT);
 console.log(`Server running at ${PORT}`);
