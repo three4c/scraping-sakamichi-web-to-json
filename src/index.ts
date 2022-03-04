@@ -1,11 +1,9 @@
 import express from "express";
 import puppeteer from "puppeteer";
+import { initializeApp, cert, ServiceAccount } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 import dotenv from "dotenv";
-dotenv.config();
-
-const app = express();
-
-const PORT = process.env.PORT || 3000;
+import serviceAccount from "../serviceAccountKey.json";
 
 interface ScheduleType {
   href: string;
@@ -13,6 +11,37 @@ interface ScheduleType {
   time: string;
   text: string;
 }
+
+interface FieldType {
+  date: string;
+  schedule: ScheduleType[];
+}
+
+dotenv.config();
+
+initializeApp({
+  credential: cert(serviceAccount as ServiceAccount),
+});
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const db = getFirestore();
+
+/** データの追加（同じドキュメントがあれば上書き） */
+const setDoc = async (document: string, field: FieldType[]) => {
+  const data: FirebaseFirestore.DocumentData = {
+    field,
+  };
+
+  await db.collection("sakamichi").doc(document).set(data);
+};
+
+/** データの取得 */
+export const getDoc = async (document: string) => {
+  (await db.collection(document).get()).forEach((doc) => {
+    console.log(JSON.stringify(doc.data().field));
+  });
+};
 
 const scraping = async (url: string) => {
   const browser = await puppeteer.launch({
@@ -67,8 +96,10 @@ const scraping = async (url: string) => {
 };
 
 const main = async () => {
-  const result = await scraping("https://www.nogizaka46.com/s/n46/media/list");
-  console.log("result", JSON.stringify(result));
+  const nogizaka = await scraping(
+    "https://www.nogizaka46.com/s/n46/media/list"
+  );
+  await setDoc("nogizaka", nogizaka);
 };
 
 main();
