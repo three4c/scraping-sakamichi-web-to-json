@@ -43,27 +43,8 @@ export const getDoc = async (document: string) => {
   });
 };
 
-const scraping = async (url: string) => {
-  const browser = await puppeteer.launch({
-    headless: false,
-    args: ["--lang=ja"],
-  });
-
-  const page = await browser.newPage();
-  await page.goto(url, {
-    waitUntil: "networkidle0",
-  });
-
-  /** ログ */
-  // page.on("console", (msg) => {
-  //   for (let i = 0; i < msg.args().length; ++i) {
-  //     console.log(`${i}: ${msg.args()[i]}`);
-  //   }
-  // });
-
-  await page.waitForTimeout(1000);
-
-  const result = await page.$$eval(".sc--lists .sc--day", (element) => {
+const nogizakaFn = (page: puppeteer.Page) =>
+  page.$$eval(".sc--lists .sc--day", (element) => {
     const today = new Date();
     const year = today.getFullYear();
     const month = today.getMonth() + 1;
@@ -91,18 +72,83 @@ const scraping = async (url: string) => {
     });
   });
 
+const hinatazakaFn = (page: puppeteer.Page) =>
+  page.$$eval(".p-schedule__list-group", (element) => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+
+    const convertText = (text: string) => text.trim().replace(/\n/g, "");
+
+    return element.map((item) => {
+      const date = `${year}-${month}-${
+        item.querySelector(".c-schedule__date--list span")?.textContent
+      }`;
+
+      const schedule: ScheduleType[] = [];
+      item.querySelectorAll(".p-schedule__item a").forEach((item) => {
+        schedule.push({
+          href:
+            `https://www.hinatazaka46.com${item.getAttribute("href")}` || "",
+          category: convertText(
+            item.querySelector(".c-schedule__category")?.textContent || ""
+          ),
+          time: convertText(
+            item.querySelector(".c-schedule__time--list")?.textContent || ""
+          ),
+          text: convertText(
+            item.querySelector(".c-schedule__text")?.textContent || ""
+          ),
+        });
+      });
+
+      return {
+        date,
+        schedule,
+      };
+    });
+  });
+
+const scraping = async () => {
+  const browser = await puppeteer.launch({
+    headless: false,
+    args: ["--lang=ja"],
+  });
+  const page = await browser.newPage();
+
+  /** 乃木坂 */
+  await page.goto("https://www.nogizaka46.com/s/n46/media/list", {
+    waitUntil: "networkidle0",
+  });
+  await page.waitForTimeout(1000);
+  const nogizaka = await nogizakaFn(page);
+
+  /** 日向坂 */
+  await page.goto(
+    "https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy=202203",
+    {
+      waitUntil: "networkidle0",
+    }
+  );
+  await page.waitForTimeout(1000);
+  const hinatazaka = await hinatazakaFn(page);
+
   await browser.close();
-  return result;
+
+  return {
+    nogizaka,
+    hinatazaka,
+  };
 };
 
 const main = async () => {
-  const nogizaka = await scraping(
-    "https://www.nogizaka46.com/s/n46/media/list"
-  );
-  await setDoc("nogizaka", nogizaka);
+  const field = await scraping();
+  await setDoc("nogizaka", field.nogizaka);
+  await setDoc("hinatazaka", field.hinatazaka);
 };
 
-main();
+/** 実行する時だけコメントアウトを戻す */
+// main();
 
 app.get("/", (req, res) => res.json("Success Deploy"));
 app.listen(PORT);
