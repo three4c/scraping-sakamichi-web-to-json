@@ -5,6 +5,16 @@ import { getFirestore } from "firebase-admin/firestore";
 import dotenv from "dotenv";
 import serviceAccount from "../serviceAccountKey.json";
 
+interface ScrapingInfoType {
+  key: SakamichiType;
+  url: string;
+  fn: (page: puppeteer.Page) => Promise<FieldType[]>;
+}
+interface FieldType {
+  date: string;
+  schedule: ScheduleType[];
+}
+
 interface ScheduleType {
   href: string;
   category: string;
@@ -12,10 +22,7 @@ interface ScheduleType {
   text: string;
 }
 
-interface FieldType {
-  date: string;
-  schedule: ScheduleType[];
-}
+type SakamichiType = "nogizaka" | "hinatazaka";
 
 dotenv.config();
 
@@ -43,6 +50,18 @@ export const getDoc = async (document: string) => {
   });
 };
 
+const getDate = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
+
+  return {
+    year,
+    month,
+  };
+};
+
+/** 乃木坂 */
 const nogizakaFn = (page: puppeteer.Page) =>
   page.$$eval(".sc--lists .sc--day", (element) => {
     const today = new Date();
@@ -72,6 +91,7 @@ const nogizakaFn = (page: puppeteer.Page) =>
     });
   });
 
+/** 日向坂 */
 const hinatazakaFn = (page: puppeteer.Page) =>
   page.$$eval(".p-schedule__list-group", (element) => {
     const today = new Date();
@@ -109,46 +129,55 @@ const hinatazakaFn = (page: puppeteer.Page) =>
     });
   });
 
-const scraping = async () => {
+/** スクレイピング */
+const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   const browser = await puppeteer.launch({
     headless: false,
     args: ["--lang=ja"],
   });
+
   const page = await browser.newPage();
 
-  /** 乃木坂 */
-  await page.goto("https://www.nogizaka46.com/s/n46/media/list", {
-    waitUntil: "networkidle0",
-  });
-  await page.waitForTimeout(1000);
-  const nogizaka = await nogizakaFn(page);
+  const result: { [key in SakamichiType]: FieldType[] } = {
+    nogizaka: [],
+    hinatazaka: [],
+  };
 
-  /** 日向坂 */
-  await page.goto(
-    "https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy=202203",
-    {
+  for (const item of scrapingInfo) {
+    await page.goto(item.url, {
       waitUntil: "networkidle0",
-    }
-  );
-  await page.waitForTimeout(1000);
-  const hinatazaka = await hinatazakaFn(page);
+    });
+    await page.waitForTimeout(1000);
+    result[item.key] = await item.fn(page);
+  }
 
   await browser.close();
-
-  return {
-    nogizaka,
-    hinatazaka,
-  };
+  return result;
 };
 
 const main = async () => {
-  const field = await scraping();
-  await setDoc("nogizaka", field.nogizaka);
-  await setDoc("hinatazaka", field.hinatazaka);
+  const scrapingInfo: ScrapingInfoType[] = [
+    {
+      key: "nogizaka",
+      url: "https://www.nogizaka46.com/s/n46/media/list",
+      fn: nogizakaFn,
+    },
+    {
+      key: "hinatazaka",
+      url: "https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy=202203",
+      fn: hinatazakaFn,
+    },
+  ];
+  const field = await scraping(scrapingInfo);
+  console.log("nogizaka", field.nogizaka);
+  console.log("----------------------------");
+  console.log("hinatazaka", field.hinatazaka);
+  // await setDoc("nogizaka", field.nogizaka);
+  // await setDoc("hinatazaka", field.hinatazaka);
 };
 
 /** 実行する時だけコメントアウトを戻す */
-// main();
+main();
 
 app.get("/", (req, res) => res.json("Success Deploy"));
 app.listen(PORT);
