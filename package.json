@@ -1,24 +1,24 @@
 {
-  "name": "sakamichi_schedule",
+  "name": "scraping-sakamichi-web-to-firebase",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "yarn build:live",
+    "start": "node dist/index.js",
     "build": "tsc -p .",
-    "build:live": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts"
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/three4c/sakamichi_schedule.git"
+    "url": "git+https://github.com/three4c/scraping-sakamichi-web-to-firebase.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/three4c/sakamichi_schedule/issues"
+    "url": "https://github.com/three4c/scraping-sakamichi-web-to-firebase/issues"
   },
-  "homepage": "https://github.com/three4c/sakamichi_schedule#readme",
+  "homepage": "https://github.com/three4c/scraping-sakamichi-web-to-firebase#readme",
   "dependencies": {
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
