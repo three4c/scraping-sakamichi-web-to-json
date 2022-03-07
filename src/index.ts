@@ -50,17 +50,6 @@ export const getDoc = async (document: string) => {
   });
 };
 
-const getDate = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth() + 1;
-
-  return {
-    year,
-    month,
-  };
-};
-
 /** 乃木坂 */
 const nogizakaFn = (page: puppeteer.Page) =>
   page.$$eval(".sc--lists .sc--day", (element) => {
@@ -177,7 +166,7 @@ const main = async () => {
 };
 
 /** 実行する時だけコメントアウトを戻す */
-main();
+// main();
 
 app.get("/", (req, res) => res.json("Success Deploy"));
 app.listen(PORT);
