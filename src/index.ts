@@ -158,9 +158,9 @@ const main = async () => {
     },
   ];
   const field = await scraping(scrapingInfo);
-  console.log("nogizaka", field.nogizaka);
+  console.log("nogizaka", JSON.stringify(field.nogizaka));
   console.log("----------------------------");
-  console.log("hinatazaka", field.hinatazaka);
+  console.log("hinatazaka", JSON.stringify(field.hinatazaka));
   // await setDoc("nogizaka", field.nogizaka);
   // await setDoc("hinatazaka", field.hinatazaka);
 };
