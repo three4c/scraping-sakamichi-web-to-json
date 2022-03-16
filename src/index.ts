@@ -122,13 +122,11 @@ const hinatazakaFn = (page: puppeteer.Page) =>
 /** スクレイピング */
 const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   const browser = await puppeteer.launch({
-    args: ["--lang=ja"],
+    args: ["--lang=ja", "--no-sandbox", "--incognito"],
   });
 
   const page = await browser.newPage();
-  await page.setExtraHTTPHeaders({
-    "Accept-Language": "ja-JP",
-  });
+  page.setViewport({ width: 320, height: 640 });
 
   const result: { [key in SakamichiType]: FieldType[] } = {
     nogizaka: [],
