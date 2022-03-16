@@ -1,4 +1,4 @@
-name: Scraping with puppeteer and export json
+name: Run puppeteer
 
 on:
   push:
@@ -11,7 +11,6 @@ jobs:
       matrix:
         node-version: [14.x]
 
-    # 以下が実際のステップ
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js 14.x
