@@ -157,17 +157,17 @@ const main = async () => {
       fn: hinatazakaFn,
     },
   ];
+
+  console.log("Scraping start");
   const field = await scraping(scrapingInfo);
   const obj = {
     nogizaka: field.nogizaka,
     hinatazaka: field.hinatazaka,
   };
-
-  fs.writeFileSync("./output.json", JSON.stringify(obj));
-
-  console.log("nogizaka", JSON.stringify(field.nogizaka));
-  console.log("----------------------------");
-  console.log("hinatazaka", JSON.stringify(field.hinatazaka));
+  console.log("Scraping end");
+  console.log("WriteFileSync start");
+  fs.writeFileSync("./schedule.json", JSON.stringify(obj));
+  console.log("WriteFileSync end");
   // await setDoc("nogizaka", field.nogizaka);
   // await setDoc("hinatazaka", field.hinatazaka);
 };
@@ -175,6 +175,6 @@ const main = async () => {
 /** 実行する時だけコメントアウトを戻す */
 main();
 
-app.get("/", (req, res) => res.send("Success Deploy"));
-app.listen(PORT);
-console.log(`Server running at ${PORT}`);
+// app.get("/", (req, res) => res.send("Success Deploy"));
+// app.listen(PORT);
+// console.log(`Server running at ${PORT}`);

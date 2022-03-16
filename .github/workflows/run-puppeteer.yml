@@ -1,0 +1,40 @@
+name: Scraping with puppeteer and export json
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    # 以下が実際のステップ
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: "14.x"
+      - name: Install Yarn
+        run: yarn install
+
+      - name: Build index.ts
+        run: yarn build
+
+      - name: Run index.js
+        run: node dist/index.js
+
+      - name: Git setting
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+      - name: Commit files
+        run: |
+          git add .
+          git commit -m "Update Schedule.json"
+          git pull origin main
+          git push origin main
