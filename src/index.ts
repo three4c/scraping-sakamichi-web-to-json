@@ -1,9 +1,9 @@
 import express from "express";
 import puppeteer from "puppeteer";
 import fs from "fs";
-import { initializeApp, cert, ServiceAccount } from "firebase-admin/app";
-// import { getFirestore } from "firebase-admin/firestore";
 import dotenv from "dotenv";
+// import { initializeApp, cert, ServiceAccount } from "firebase-admin/app";
+// import { getFirestore } from "firebase-admin/firestore";
 // import serviceAccount from "./serviceAccountKey.json";
 
 interface ScrapingInfoType {
@@ -126,6 +126,9 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   });
 
   const page = await browser.newPage();
+  await page.setExtraHTTPHeaders({
+    "Accept-Language": "ja-JP",
+  });
 
   const result: { [key in SakamichiType]: FieldType[] } = {
     nogizaka: [],
