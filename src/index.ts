@@ -2,7 +2,7 @@ import express from "express";
 import puppeteer from "puppeteer";
 import fs from "fs";
 import { initializeApp, cert, ServiceAccount } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+// import { getFirestore } from "firebase-admin/firestore";
 import dotenv from "dotenv";
 // import serviceAccount from "./serviceAccountKey.json";
 
@@ -33,7 +33,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const db = getFirestore();
+// const db = getFirestore();
 
 /** データの追加（同じドキュメントがあれば上書き） */
 // const setDoc = async (document: string, field: FieldType[]) => {
@@ -165,9 +165,9 @@ const main = async () => {
 
   fs.writeFileSync("./output.json", JSON.stringify(obj));
 
-  // console.log("nogizaka", JSON.stringify(field.nogizaka));
-  // console.log("----------------------------");
-  // console.log("hinatazaka", JSON.stringify(field.hinatazaka));
+  console.log("nogizaka", JSON.stringify(field.nogizaka));
+  console.log("----------------------------");
+  console.log("hinatazaka", JSON.stringify(field.hinatazaka));
   // await setDoc("nogizaka", field.nogizaka);
   // await setDoc("hinatazaka", field.hinatazaka);
 };
