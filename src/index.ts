@@ -1,9 +1,10 @@
 import express from "express";
 import puppeteer from "puppeteer";
+import fs from "fs";
 import { initializeApp, cert, ServiceAccount } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import dotenv from "dotenv";
-import serviceAccount from "../serviceAccountKey.json";
+import serviceAccount from "./serviceAccountKey.json";
 
 interface ScrapingInfoType {
   key: SakamichiType;
@@ -121,7 +122,6 @@ const hinatazakaFn = (page: puppeteer.Page) =>
 /** スクレイピング */
 const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   const browser = await puppeteer.launch({
-    headless: false,
     args: ["--lang=ja"],
   });
 
@@ -158,16 +158,23 @@ const main = async () => {
     },
   ];
   const field = await scraping(scrapingInfo);
-  console.log("nogizaka", JSON.stringify(field.nogizaka));
-  console.log("----------------------------");
-  console.log("hinatazaka", JSON.stringify(field.hinatazaka));
+  const obj = {
+    nogizaka: field.nogizaka,
+    hinatazaka: field.hinatazaka,
+  };
+
+  fs.writeFileSync("./output.json", JSON.stringify(obj));
+
+  // console.log("nogizaka", JSON.stringify(field.nogizaka));
+  // console.log("----------------------------");
+  // console.log("hinatazaka", JSON.stringify(field.hinatazaka));
   // await setDoc("nogizaka", field.nogizaka);
   // await setDoc("hinatazaka", field.hinatazaka);
 };
 
 /** 実行する時だけコメントアウトを戻す */
-// main();
+main();
 
-app.get("/", (req, res) => res.json("Success Deploy"));
+app.get("/", (req, res) => res.send("Success Deploy"));
 app.listen(PORT);
 console.log(`Server running at ${PORT}`);

@@ -1,0 +1,28 @@
+name: RUN puppeteer
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    # 以下が実際のステップ
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: "14.x"
+      - name: Install
+        run: yarn install
+
+      - name: Build
+        run: yarn build
+
+      - name: RUN index.js
+        run: node dist/index.js
