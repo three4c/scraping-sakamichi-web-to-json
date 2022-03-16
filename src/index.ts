@@ -4,7 +4,7 @@ import fs from "fs";
 import { initializeApp, cert, ServiceAccount } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import dotenv from "dotenv";
-import serviceAccount from "./serviceAccountKey.json";
+// import serviceAccount from "./serviceAccountKey.json";
 
 interface ScrapingInfoType {
   key: SakamichiType;
@@ -27,29 +27,29 @@ type SakamichiType = "nogizaka" | "hinatazaka";
 
 dotenv.config();
 
-initializeApp({
-  credential: cert(serviceAccount as ServiceAccount),
-});
+// initializeApp({
+//   credential: cert(serviceAccount as ServiceAccount),
+// });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const db = getFirestore();
 
 /** データの追加（同じドキュメントがあれば上書き） */
-const setDoc = async (document: string, field: FieldType[]) => {
-  const data: FirebaseFirestore.DocumentData = {
-    field,
-  };
+// const setDoc = async (document: string, field: FieldType[]) => {
+//   const data: FirebaseFirestore.DocumentData = {
+//     field,
+//   };
 
-  await db.collection("sakamichi").doc(document).set(data);
-};
+//   await db.collection("sakamichi").doc(document).set(data);
+// };
 
 /** データの取得 */
-export const getDoc = async (document: string) => {
-  (await db.collection(document).get()).forEach((doc) => {
-    console.log(JSON.stringify(doc.data().field));
-  });
-};
+// export const getDoc = async (document: string) => {
+//   (await db.collection(document).get()).forEach((doc) => {
+//     console.log(JSON.stringify(doc.data().field));
+//   });
+// };
 
 /** 乃木坂 */
 const nogizakaFn = (page: puppeteer.Page) =>
