@@ -28,12 +28,12 @@ jobs:
 
       - name: Git setting
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          git config --local user.email ${{ secrets.EMAIL }}
+          git config --local user.name ${{ secrets.USERNAME }}
 
       - name: Commit files
         run: |
           git add .
           git commit -m "Update Schedule.json"
-          git pull origin main
-          git push origin main
+          git pull
+          git push
