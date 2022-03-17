@@ -53,7 +53,11 @@ const PORT = process.env.PORT || 3000;
 
 /** 乃木坂 */
 const nogizakaFn = (page: puppeteer.Page) =>
-  page.$$eval(".sc--lists .sc--day", (element) => {
+  page.$$eval(".sc--lists .sc--day", async (element) => {
+    document.scrollingElement?.scrollBy(0, 1000);
+    await new Promise((resolve) => {
+      setTimeout(resolve, 200);
+    });
     const today = new Date();
     const year = today.getFullYear();
     const month = today.getMonth() + 1;
@@ -122,11 +126,15 @@ const hinatazakaFn = (page: puppeteer.Page) =>
 /** スクレイピング */
 const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   const browser = await puppeteer.launch({
-    args: ["--lang=ja", "--no-sandbox", "--incognito"],
+    args: ["--lang=ja"],
   });
 
   const page = await browser.newPage();
-  page.setViewport({ width: 320, height: 640 });
+  await page.setExtraHTTPHeaders({
+    "Accept-Language": "ja-JP",
+  });
+
+  await page.setViewport({ width: 320, height: 640 });
 
   const result: { [key in SakamichiType]: FieldType[] } = {
     nogizaka: [],
@@ -139,6 +147,11 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
     });
     await page.waitForTimeout(1000);
     result[item.key] = await item.fn(page);
+    await page.screenshot({
+      fullPage: true,
+      type: "jpeg",
+      path: "./screenshot.jpg",
+    });
   }
 
   await browser.close();
@@ -152,11 +165,11 @@ const main = async () => {
       url: "https://www.nogizaka46.com/s/n46/media/list",
       fn: nogizakaFn,
     },
-    {
-      key: "hinatazaka",
-      url: "https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy=202203",
-      fn: hinatazakaFn,
-    },
+    // {
+    //   key: "hinatazaka",
+    //   url: "https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy=202203",
+    //   fn: hinatazakaFn,
+    // },
   ];
 
   console.log("Scraping start");
