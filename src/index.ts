@@ -88,7 +88,7 @@ const nogizakaFn = async (page: puppeteer.Page) => {
 };
 
 /** 日向坂 */
-const hinatazakaFn = async (page: puppeteer.Page) =>
+const hinatazakaFn = (page: puppeteer.Page) =>
   page.$$eval(".p-schedule__list-group", (element) => {
     const today = new Date();
     const year = today.getFullYear();
@@ -146,15 +146,8 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
     await page.goto(item.url, {
       waitUntil: "networkidle0",
     });
-
     await page.waitForTimeout(1000);
-    await item
-      .fn(page)
-      .then(async () => {
-        result[item.key] = await item.fn(page);
-      })
-      .catch((error) => console.error(error));
-
+    result[item.key] = await item.fn(page);
     await page.screenshot({
       path: "./screenshot.jpeg",
       type: "jpeg",
