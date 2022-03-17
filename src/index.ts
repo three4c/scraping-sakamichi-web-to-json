@@ -129,8 +129,6 @@ const hinatazakaFn = (page: puppeteer.Page) =>
 const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   const browser = await puppeteer.launch({
     args: ["--lang=ja"],
-    headless: false,
-    slowMo: 100,
   });
 
   const page = await browser.newPage();
