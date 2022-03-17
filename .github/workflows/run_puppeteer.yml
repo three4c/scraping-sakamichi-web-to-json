@@ -35,5 +35,5 @@ jobs:
         run: |
           git add .
           git commit -m "Update Schedule.json"
-          git pull
+          git pull --rebase
           git push
