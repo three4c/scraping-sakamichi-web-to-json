@@ -52,12 +52,13 @@ const PORT = process.env.PORT || 3000;
 // };
 
 /** 乃木坂 */
-const nogizakaFn = (page: puppeteer.Page) =>
-  page.$$eval(".sc--lists .sc--day", async (element) => {
-    document.scrollingElement?.scrollBy(0, 1000);
-    await new Promise((resolve) => {
-      setTimeout(resolve, 200);
-    });
+const nogizakaFn = async (page: puppeteer.Page) => {
+  await page.click(".b--lng");
+  await page.waitForTimeout(1000);
+  await page.click(".b--lng__one.js-lang-swich.hv--op.ja");
+  await page.waitForTimeout(1000);
+
+  return page.$$eval(".sc--lists .sc--day", (element) => {
     const today = new Date();
     const year = today.getFullYear();
     const month = today.getMonth() + 1;
@@ -84,9 +85,10 @@ const nogizakaFn = (page: puppeteer.Page) =>
       };
     });
   });
+};
 
 /** 日向坂 */
-const hinatazakaFn = (page: puppeteer.Page) =>
+const hinatazakaFn = async (page: puppeteer.Page) =>
   page.$$eval(".p-schedule__list-group", (element) => {
     const today = new Date();
     const year = today.getFullYear();
@@ -127,12 +129,11 @@ const hinatazakaFn = (page: puppeteer.Page) =>
 const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   const browser = await puppeteer.launch({
     args: ["--lang=ja"],
+    headless: false,
+    slowMo: 100,
   });
 
   const page = await browser.newPage();
-  await page.setExtraHTTPHeaders({
-    "Accept-Language": "ja-JP",
-  });
 
   await page.setViewport({ width: 320, height: 640 });
 
@@ -148,9 +149,8 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
     await page.waitForTimeout(1000);
     result[item.key] = await item.fn(page);
     await page.screenshot({
-      fullPage: true,
+      path: "./screenshot.jpeg",
       type: "jpeg",
-      path: "./screenshot.jpg",
     });
   }
 
