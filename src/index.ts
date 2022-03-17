@@ -1,10 +1,5 @@
-import express from "express";
 import puppeteer from "puppeteer";
 import fs from "fs";
-import dotenv from "dotenv";
-// import { initializeApp, cert, ServiceAccount } from "firebase-admin/app";
-// import { getFirestore } from "firebase-admin/firestore";
-// import serviceAccount from "./serviceAccountKey.json";
 
 interface ScrapingInfoType {
   key: SakamichiType;
@@ -24,32 +19,6 @@ interface ScheduleType {
 }
 
 type SakamichiType = "nogizaka" | "hinatazaka";
-
-dotenv.config();
-
-// initializeApp({
-//   credential: cert(serviceAccount as ServiceAccount),
-// });
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-// const db = getFirestore();
-
-/** データの追加（同じドキュメントがあれば上書き） */
-// const setDoc = async (document: string, field: FieldType[]) => {
-//   const data: FirebaseFirestore.DocumentData = {
-//     field,
-//   };
-
-//   await db.collection("sakamichi").doc(document).set(data);
-// };
-
-/** データの取得 */
-// export const getDoc = async (document: string) => {
-//   (await db.collection(document).get()).forEach((doc) => {
-//     console.log(JSON.stringify(doc.data().field));
-//   });
-// };
 
 /** 乃木坂 */
 const nogizakaFn = async (page: puppeteer.Page) => {
@@ -146,8 +115,9 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
     });
     await page.waitForTimeout(1000);
     result[item.key] = await item.fn(page);
+    /** Github Actionsのデバッグ用 */
     await page.screenshot({
-      path: "./screenshot.jpeg",
+      path: `./screenshot/${item.key}.jpeg`,
       type: "jpeg",
     });
   }
@@ -163,11 +133,11 @@ const main = async () => {
       url: "https://www.nogizaka46.com/s/n46/media/list",
       fn: nogizakaFn,
     },
-    // {
-    //   key: "hinatazaka",
-    //   url: "https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy=202203",
-    //   fn: hinatazakaFn,
-    // },
+    {
+      key: "hinatazaka",
+      url: "https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy=202203",
+      fn: hinatazakaFn,
+    },
   ];
 
   console.log("Scraping start");
@@ -180,13 +150,6 @@ const main = async () => {
   console.log("WriteFileSync start");
   fs.writeFileSync("./schedule.json", JSON.stringify(obj));
   console.log("WriteFileSync end");
-  // await setDoc("nogizaka", field.nogizaka);
-  // await setDoc("hinatazaka", field.hinatazaka);
 };
 
-/** 実行する時だけコメントアウトを戻す */
 main();
-
-// app.get("/", (req, res) => res.send("Success Deploy"));
-// app.listen(PORT);
-// console.log(`Server running at ${PORT}`);
