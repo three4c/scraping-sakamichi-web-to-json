@@ -1,27 +1,15 @@
 import puppeteer from "puppeteer";
 import fs from "fs";
 
-interface ScrapingInfoType {
-  key: SakamichiType;
-  url: string;
-  fn: (page: puppeteer.Page) => Promise<FieldType[]>;
-}
-interface FieldType {
-  date: string;
-  schedule: ScheduleType[];
-}
-
-interface ScheduleType {
-  href: string;
-  category: string;
-  time: string;
-  text: string;
-}
-
-type SakamichiType = "nogizaka" | "hinatazaka";
+import {
+  SakamichiType,
+  ScrapingInfoType,
+  FieldType,
+  ScheduleType,
+} from "types";
 
 /** 乃木坂 */
-const nogizakaFn = async (page: puppeteer.Page) => {
+const getNogizakaSchedule = async (page: puppeteer.Page) => {
   await page.click(".b--lng");
   await page.waitForTimeout(1000);
   await page.click(".b--lng__one.js-lang-swich.hv--op.ja");
@@ -56,8 +44,22 @@ const nogizakaFn = async (page: puppeteer.Page) => {
   });
 };
 
+const getMember = async (page: puppeteer.Page) => {
+  await page.click(".b--lng");
+  await page.waitForTimeout(1000);
+  await page.click(".b--lng__one.js-lang-swich.hv--op.ja");
+  await page.waitForTimeout(1000);
+
+  return page.$eval(".m--mem", (element) => {
+    element
+      .querySelector<HTMLElement>(".m--bg")
+      ?.style.backgroundImage.slice(4, -1)
+      .replace(/"/g, "");
+  });
+};
+
 /** 日向坂 */
-const hinatazakaFn = (page: puppeteer.Page) =>
+const getHinatazakaSchedule = (page: puppeteer.Page) =>
   page.$$eval(".p-schedule__list-group", (element) => {
     const today = new Date();
     const year = today.getFullYear();
@@ -131,12 +133,12 @@ const main = async () => {
     {
       key: "nogizaka",
       url: "https://www.nogizaka46.com/s/n46/media/list",
-      fn: nogizakaFn,
+      fn: getNogizakaSchedule,
     },
     {
       key: "hinatazaka",
       url: "https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy=202203",
-      fn: hinatazakaFn,
+      fn: getHinatazakaSchedule,
     },
   ];
 

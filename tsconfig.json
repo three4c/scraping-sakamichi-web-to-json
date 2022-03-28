@@ -1,13 +1,20 @@
 {
   "compilerOptions": {
-    "target": "es2018",
-    "lib": ["es6", "dom"],
-    "module": "commonjs",
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "target": "ES2018",
+    "lib": ["ES2018", "dom"],
+    "allowJs": true,
+    "skipLibCheck": true,
     "strict": true,
-    "skipLibCheck": true
-  }
+    "module": "commonjs",
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "baseUrl": "src",
+    "outDir": "./dist"
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
 }
