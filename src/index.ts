@@ -70,7 +70,10 @@ const getMember = async (page: puppeteer.Page) =>
     element.forEach((item) => {
       member.push({
         href: item.querySelector(".m--mem__in")?.getAttribute("href") || "",
-        name: item.querySelector(".m--mem__name")?.textContent || "",
+        name: (item.querySelector(".m--mem__name")?.textContent || "").replace(
+          /\s+/g,
+          ""
+        ),
         src:
           item
             .querySelector<HTMLElement>(".m--bg")
