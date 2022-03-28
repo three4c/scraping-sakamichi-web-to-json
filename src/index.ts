@@ -1,12 +1,25 @@
 import puppeteer from "puppeteer";
 import fs from "fs";
 
-import {
-  SakamichiType,
-  ScrapingInfoType,
-  FieldType,
-  ScheduleType,
-} from "types";
+type SakamichiType = "nogizaka" | "hinatazaka";
+
+interface ScrapingInfoType {
+  key: SakamichiType;
+  url: string;
+  fn: (page: puppeteer.Page) => Promise<FieldType[]>;
+}
+
+interface FieldType {
+  date: string;
+  schedule: ScheduleType[];
+}
+
+interface ScheduleType {
+  href: string;
+  category: string;
+  time: string;
+  text: string;
+}
 
 /** 乃木坂 */
 const getNogizakaSchedule = async (page: puppeteer.Page) => {
