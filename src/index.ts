@@ -1,12 +1,12 @@
 import puppeteer from "puppeteer";
 import fs from "fs";
 
-type SakamichiType = "nogizaka" | "hinatazaka";
+type SakamichiType = "n_schedule" | "n_member" | "h_schedule";
 
 interface ScrapingInfoType {
   key: SakamichiType;
   url: string;
-  fn: (page: puppeteer.Page) => Promise<FieldType[]>;
+  fn: (page: puppeteer.Page) => Promise<FieldType[] | MemberType[]>;
 }
 
 interface FieldType {
@@ -19,6 +19,12 @@ interface ScheduleType {
   category: string;
   time: string;
   text: string;
+}
+
+interface MemberType {
+  href: string;
+  name: string;
+  src: string;
 }
 
 /** 乃木坂 */
@@ -57,19 +63,24 @@ const getNogizakaSchedule = async (page: puppeteer.Page) => {
   });
 };
 
-const getMember = async (page: puppeteer.Page) => {
-  await page.click(".b--lng");
-  await page.waitForTimeout(1000);
-  await page.click(".b--lng__one.js-lang-swich.hv--op.ja");
-  await page.waitForTimeout(1000);
+/** getNogizakaScheduleで言語を切り替えているため、こちらではそのままスクレイピングを行う */
+const getMember = async (page: puppeteer.Page) =>
+  page.$$eval(".m--mem", (element) => {
+    const member: MemberType[] = [];
+    element.forEach((item) => {
+      member.push({
+        href: item.querySelector(".m--mem__in")?.getAttribute("href") || "",
+        name: item.querySelector(".m--mem__name")?.textContent || "",
+        src:
+          item
+            .querySelector<HTMLElement>(".m--bg")
+            ?.style.backgroundImage.slice(4, -1)
+            .replace(/"/g, "") || "",
+      });
+    });
 
-  return page.$eval(".m--mem", (element) => {
-    element
-      .querySelector<HTMLElement>(".m--bg")
-      ?.style.backgroundImage.slice(4, -1)
-      .replace(/"/g, "");
+    return member;
   });
-};
 
 /** 日向坂 */
 const getHinatazakaSchedule = (page: puppeteer.Page) =>
@@ -113,15 +124,25 @@ const getHinatazakaSchedule = (page: puppeteer.Page) =>
 const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   const browser = await puppeteer.launch({
     args: ["--lang=ja"],
+    /** DEBUG */
+    // headless: false,
+    // slowMo: 100,
   });
 
   const page = await browser.newPage();
 
+  /** DEBUG */
+  // page.on('console', msg => {
+  //   for (let i = 0; i < msg.args().length; ++i)
+  //     console.log(`${i}: ${msg.args()[i]}`);
+  // });
+
   await page.setViewport({ width: 320, height: 640 });
 
-  const result: { [key in SakamichiType]: FieldType[] } = {
-    nogizaka: [],
-    hinatazaka: [],
+  const result: { [key in SakamichiType]: FieldType[] | MemberType[] } = {
+    n_schedule: [],
+    n_member: [],
+    h_schedule: [],
   };
 
   for (const item of scrapingInfo) {
@@ -144,12 +165,17 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 const main = async () => {
   const scrapingInfo: ScrapingInfoType[] = [
     {
-      key: "nogizaka",
+      key: "n_schedule",
       url: "https://www.nogizaka46.com/s/n46/media/list",
       fn: getNogizakaSchedule,
     },
     {
-      key: "hinatazaka",
+      key: "n_member",
+      url: "https://www.nogizaka46.com/s/n46/search/artist",
+      fn: getMember,
+    },
+    {
+      key: "h_schedule",
       url: "https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy=202203",
       fn: getHinatazakaSchedule,
     },
@@ -158,11 +184,17 @@ const main = async () => {
   console.log("Scraping start");
   const field = await scraping(scrapingInfo);
   const obj = {
-    nogizaka: field.nogizaka,
-    hinatazaka: field.hinatazaka,
+    nogizaka: {
+      schedule: field.n_schedule,
+      member: field.n_member,
+    },
+    hinatazaka: {
+      schedule: field.h_schedule,
+    },
   };
   console.log("Scraping end");
   console.log("WriteFileSync start");
+  // console.log(JSON.stringify(obj));
   fs.writeFileSync("./schedule.json", JSON.stringify(obj));
   console.log("WriteFileSync end");
 };
