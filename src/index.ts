@@ -166,7 +166,9 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 };
 
 const main = async () => {
-  const today = new Date();
+  const today = new Date(
+    Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000
+  );
   const year = today.getFullYear();
   const month = today.getMonth() + 1;
   const dyParameter = `${year}${`00${month}`.slice(-2)}`;
@@ -189,6 +191,7 @@ const main = async () => {
     },
   ];
 
+  console.log("Scraping Info", scrapingInfo);
   console.log("Scraping start");
   const field = await scraping(scrapingInfo);
   const obj = {
