@@ -126,7 +126,7 @@ const getHinatazakaSchedule = (page: puppeteer.Page) =>
 /** スクレイピング */
 const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   const browser = await puppeteer.launch({
-    args: ["--lang=ja"],
+    args: ["--lang=ja", "--incognito"],
     /** DEBUG */
     // headless: false,
     // slowMo: 100,
