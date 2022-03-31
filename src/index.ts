@@ -152,8 +152,6 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
     await page.goto(item.url, {
       waitUntil: "networkidle0",
     });
-    await page.setCacheEnabled(false);
-    await page.reload({ waitUntil: "networkidle2" });
     await page.waitForTimeout(1000);
     result[item.key] = await item.fn(page);
     /** Github Actionsのデバッグ用 */
@@ -168,10 +166,15 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 };
 
 const main = async () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
+  const dyParameter = `${year}${`00${month}`.slice(-2)}`;
+
   const scrapingInfo: ScrapingInfoType[] = [
     {
       key: "n_schedule",
-      url: "https://www.nogizaka46.com/s/n46/media/list",
+      url: `https://www.nogizaka46.com/s/n46/media/list?dy=${dyParameter}`,
       fn: getNogizakaSchedule,
     },
     {
@@ -181,7 +184,7 @@ const main = async () => {
     },
     {
       key: "h_schedule",
-      url: "https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy=202203",
+      url: `https://www.hinatazaka46.com/s/official/media/list?dy=${dyParameter}`,
       fn: getHinatazakaSchedule,
     },
   ];
