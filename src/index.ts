@@ -35,7 +35,9 @@ const getNogizakaSchedule = async (page: puppeteer.Page) => {
   await page.waitForTimeout(1000);
 
   return page.$$eval(".sc--lists .sc--day", (element) => {
-    const today = new Date();
+    const today = new Date(
+      Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000
+    );
     const year = today.getFullYear();
     const month = today.getMonth() + 1;
 
@@ -88,7 +90,9 @@ const getMember = async (page: puppeteer.Page) =>
 /** 日向坂 */
 const getHinatazakaSchedule = (page: puppeteer.Page) =>
   page.$$eval(".p-schedule__list-group", (element) => {
-    const today = new Date();
+    const today = new Date(
+      Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000
+    );
     const year = today.getFullYear();
     const month = today.getMonth() + 1;
 
