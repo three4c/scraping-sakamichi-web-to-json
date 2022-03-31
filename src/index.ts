@@ -149,9 +149,7 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   };
 
   for (const item of scrapingInfo) {
-    await page.goto(item.url, {
-      waitUntil: "networkidle0",
-    });
+    await page.goto(item.url);
     await page.waitForTimeout(1000);
     result[item.key] = await item.fn(page);
     /** Github Actionsのデバッグ用 */
