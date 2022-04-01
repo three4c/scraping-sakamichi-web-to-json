@@ -1,10 +1,10 @@
 import puppeteer from "puppeteer";
 import fs from "fs";
 
-type SakamichiType = "n_schedule" | "n_member" | "h_schedule";
+type GroupType = "n_schedule" | "n_member" | "h_schedule" | "h_member";
 
 interface ScrapingInfoType {
-  key: SakamichiType;
+  key: GroupType;
   url: string;
   fn: (page: puppeteer.Page) => Promise<FieldType[] | MemberType[]>;
 }
@@ -28,7 +28,7 @@ interface MemberType {
 }
 
 /** 乃木坂 */
-const getNogizakaSchedule = async (page: puppeteer.Page) => {
+const n_getSchedule = async (page: puppeteer.Page) => {
   await page.click(".b--lng");
   await page.waitForTimeout(1000);
   await page.click(".b--lng__one.js-lang-swich.hv--op.ja");
@@ -47,6 +47,7 @@ const getNogizakaSchedule = async (page: puppeteer.Page) => {
         ?.getAttribute("id")}`;
 
       const schedule: ScheduleType[] = [];
+
       item.querySelectorAll(".m--scone").forEach((item) => {
         schedule.push({
           href: item.querySelector(".m--scone__a")?.getAttribute("href") || "",
@@ -65,10 +66,11 @@ const getNogizakaSchedule = async (page: puppeteer.Page) => {
   });
 };
 
-/** getNogizakaScheduleで言語を切り替えているため、こちらではそのままスクレイピングを行う */
-const getMember = async (page: puppeteer.Page) =>
+/** n_getScheduleで言語を切り替えているため、こちらではそのままスクレイピングを行う */
+const n_getMember = async (page: puppeteer.Page) =>
   page.$$eval(".m--mem", (element) => {
     const member: MemberType[] = [];
+
     element.forEach((item) => {
       member.push({
         href: item.querySelector(".m--mem__in")?.getAttribute("href") || "",
@@ -88,7 +90,7 @@ const getMember = async (page: puppeteer.Page) =>
   });
 
 /** 日向坂 */
-const getHinatazakaSchedule = (page: puppeteer.Page) =>
+const h_getSchedule = (page: puppeteer.Page) =>
   page.$$eval(".p-schedule__list-group", (element) => {
     const today = new Date(
       Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000
@@ -104,10 +106,12 @@ const getHinatazakaSchedule = (page: puppeteer.Page) =>
       }`;
 
       const schedule: ScheduleType[] = [];
+
       item.querySelectorAll(".p-schedule__item a").forEach((item) => {
+        const href = item.getAttribute("href");
+
         schedule.push({
-          href:
-            `https://www.hinatazaka46.com${item.getAttribute("href")}` || "",
+          href: href ? `https://www.hinatazaka46.com${href}` : "",
           category: convertText(
             item.querySelector(".c-schedule__category")?.textContent || ""
           ),
@@ -127,6 +131,26 @@ const getHinatazakaSchedule = (page: puppeteer.Page) =>
     });
   });
 
+const h_getMember = async (page: puppeteer.Page) =>
+  page.$$eval(".p-member__item", (element) => {
+    const convertText = (text: string) => text.trim().replace(/\n|\s+/g, "");
+    const member: MemberType[] = [];
+
+    element.forEach((item) => {
+      const href = item.querySelector("a")?.getAttribute("href");
+
+      member.push({
+        href: href ? `https://www.hinatazaka46.com${href}` : "",
+        name: convertText(
+          item.querySelector(".c-member__name")?.textContent || ""
+        ),
+        src: item.querySelector("img")?.getAttribute("src") || "",
+      });
+    });
+
+    return member;
+  });
+
 /** スクレイピング */
 const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   const browser = await puppeteer.launch({
@@ -139,17 +163,18 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   const page = await browser.newPage();
 
   /** DEBUG */
-  // page.on('console', msg => {
+  // page.on("console", (msg) => {
   //   for (let i = 0; i < msg.args().length; ++i)
   //     console.log(`${i}: ${msg.args()[i]}`);
   // });
 
   await page.setViewport({ width: 320, height: 640 });
 
-  const result: { [key in SakamichiType]: FieldType[] | MemberType[] } = {
+  const result: { [key in GroupType]: FieldType[] | MemberType[] } = {
     n_schedule: [],
     n_member: [],
     h_schedule: [],
+    h_member: [],
   };
 
   for (const item of scrapingInfo) {
@@ -181,17 +206,22 @@ const main = async () => {
     {
       key: "n_schedule",
       url: `https://www.nogizaka46.com/s/n46/media/list?dy=${dyParameter}`,
-      fn: getNogizakaSchedule,
+      fn: n_getSchedule,
     },
     {
       key: "n_member",
       url: "https://www.nogizaka46.com/s/n46/search/artist",
-      fn: getMember,
+      fn: n_getMember,
     },
     {
       key: "h_schedule",
       url: `https://www.hinatazaka46.com/s/official/media/list?dy=${dyParameter}`,
-      fn: getHinatazakaSchedule,
+      fn: h_getSchedule,
+    },
+    {
+      key: "h_member",
+      url: "https://www.hinatazaka46.com/s/official/search/artist",
+      fn: h_getMember,
     },
   ];
 
@@ -205,10 +235,12 @@ const main = async () => {
     },
     hinatazaka: {
       schedule: field.h_schedule,
+      member: field.h_member,
     },
   };
   console.log("Scraping end");
   console.log("WriteFileSync start");
+  /** DEBUG */
   // console.log(JSON.stringify(obj));
   fs.writeFileSync("./schedule.json", JSON.stringify(obj));
   console.log("WriteFileSync end");
