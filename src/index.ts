@@ -29,10 +29,10 @@ interface MemberType {
 
 /** 乃木坂 */
 const n_getSchedule = async (page: puppeteer.Page) => {
-  await page.click(".b--lng");
-  await page.waitForTimeout(1000);
-  await page.click(".b--lng__one.js-lang-swich.hv--op.ja");
-  await page.waitForTimeout(1000);
+  // await page.click(".b--lng");
+  // await page.waitForTimeout(1000);
+  // await page.click(".b--lng__one.js-lang-swich.hv--op.ja");
+  // await page.waitForTimeout(1000);
 
   return page.$$eval(".sc--lists .sc--day", (element) => {
     const today = new Date(
@@ -55,20 +55,20 @@ const n_getSchedule = async (page: puppeteer.Page) => {
           const date = id ? `${year}-${month}-${id}` : "";
           const schedule: ScheduleType[] = [];
 
-          item.querySelectorAll(".m--scone").forEach((itemElement) => {
+          item.querySelectorAll(".m--scone").forEach((elementItem) => {
             schedule.push({
               href:
-                itemElement
+                elementItem
                   .querySelector(".m--scone__a")
                   ?.getAttribute("href") || "",
               category:
-                itemElement.querySelector(".m--scone__cat__name")
+                elementItem.querySelector(".m--scone__cat__name")
                   ?.textContent || "",
               time:
-                itemElement.querySelector(".m--scone__start")?.textContent ||
+                elementItem.querySelector(".m--scone__start")?.textContent ||
                 "",
               text:
-                itemElement.querySelector(".m--scone__ttl")?.textContent || "",
+                elementItem.querySelector(".m--scone__ttl")?.textContent || "",
             });
           });
 
@@ -136,21 +136,21 @@ const h_getSchedule = (page: puppeteer.Page) =>
         if (isTargetElement) {
           item
             .querySelectorAll(".p-schedule__item a")
-            .forEach((itemElement) => {
-              const href = itemElement.getAttribute("href");
+            .forEach((elementItem) => {
+              const href = elementItem.getAttribute("href");
 
               schedule.push({
                 href: href ? `https://www.hinatazaka46.com${href}` : "",
                 category: convertText(
-                  itemElement.querySelector(".c-schedule__category")
+                  elementItem.querySelector(".c-schedule__category")
                     ?.textContent || ""
                 ),
                 time: convertText(
-                  itemElement.querySelector(".c-schedule__time--list")
+                  elementItem.querySelector(".c-schedule__time--list")
                     ?.textContent || ""
                 ),
                 text: convertText(
-                  itemElement.querySelector(".c-schedule__text")?.textContent ||
+                  elementItem.querySelector(".c-schedule__text")?.textContent ||
                     ""
                 ),
               });
