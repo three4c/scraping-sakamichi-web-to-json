@@ -2,7 +2,7 @@ name: Run puppeteer
 
 on:
   schedule:
-    - cron: "0 23 * * *"
+    - cron: "0 15 * * *" #日本時間 0:00
 
 jobs:
   build:
