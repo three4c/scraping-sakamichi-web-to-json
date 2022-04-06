@@ -28,6 +28,7 @@ jobs:
 
       - name: Git setting
         run: |
+          echo "key = ${{ secrets }}"
           git config --local user.email ${{ secrets.EMAIL }}
           git config --local user.name ${{ secrets.USERNAME }}
 
