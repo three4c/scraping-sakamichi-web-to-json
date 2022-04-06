@@ -40,29 +40,41 @@ const n_getSchedule = async (page: puppeteer.Page) => {
     );
     const year = today.getFullYear();
     const month = today.getMonth() + 1;
+    const day = today.getDate();
 
-    return element.map((item) => {
-      const date = `${year}-${month}-${item
-        .querySelector(".sc--day__hd")
-        ?.getAttribute("id")}`;
+    return element
+      .map((item) => {
+        const id =
+          item.querySelector(".sc--day__hd")?.getAttribute("id") || undefined;
 
-      const schedule: ScheduleType[] = [];
+        const isTargetElement = id
+          ? -1 <= Number(id) - day && Number(id) - day <= 1
+          : false;
 
-      item.querySelectorAll(".m--scone").forEach((item) => {
-        schedule.push({
-          href: item.querySelector(".m--scone__a")?.getAttribute("href") || "",
-          category:
-            item.querySelector(".m--scone__cat__name")?.textContent || "",
-          time: item.querySelector(".m--scone__start")?.textContent || "",
-          text: item.querySelector(".m--scone__ttl")?.textContent || "",
-        });
-      });
+        if (isTargetElement) {
+          const date = id ? `${year}-${month}-${id}` : "";
+          const schedule: ScheduleType[] = [];
 
-      return {
-        date,
-        schedule,
-      };
-    });
+          item.querySelectorAll(".m--scone").forEach((item) => {
+            schedule.push({
+              href:
+                item.querySelector(".m--scone__a")?.getAttribute("href") || "",
+              category:
+                item.querySelector(".m--scone__cat__name")?.textContent || "",
+              time: item.querySelector(".m--scone__start")?.textContent || "",
+              text: item.querySelector(".m--scone__ttl")?.textContent || "",
+            });
+          });
+
+          return {
+            date,
+            schedule,
+          };
+        }
+      })
+      .filter(
+        (item): item is Exclude<typeof item, undefined> => item !== undefined
+      );
   });
 };
 
@@ -97,38 +109,51 @@ const h_getSchedule = (page: puppeteer.Page) =>
     );
     const year = today.getFullYear();
     const month = today.getMonth() + 1;
+    const day = today.getDate();
 
     const convertText = (text: string) => text.trim().replace(/\n/g, "");
 
-    return element.map((item) => {
-      const date = `${year}-${month}-${
-        item.querySelector(".c-schedule__date--list span")?.textContent
-      }`;
+    return element
+      .map((item) => {
+        const id =
+          item.querySelector(".c-schedule__date--list span")?.textContent ||
+          undefined;
 
-      const schedule: ScheduleType[] = [];
+        const isTargetElement = id
+          ? -1 <= Number(id) - day && Number(id) - day <= 1
+          : false;
 
-      item.querySelectorAll(".p-schedule__item a").forEach((item) => {
-        const href = item.getAttribute("href");
+        const date = id ? `${year}-${month}-${id}` : "";
 
-        schedule.push({
-          href: href ? `https://www.hinatazaka46.com${href}` : "",
-          category: convertText(
-            item.querySelector(".c-schedule__category")?.textContent || ""
-          ),
-          time: convertText(
-            item.querySelector(".c-schedule__time--list")?.textContent || ""
-          ),
-          text: convertText(
-            item.querySelector(".c-schedule__text")?.textContent || ""
-          ),
-        });
-      });
+        const schedule: ScheduleType[] = [];
 
-      return {
-        date,
-        schedule,
-      };
-    });
+        if (isTargetElement) {
+          item.querySelectorAll(".p-schedule__item a").forEach((item) => {
+            const href = item.getAttribute("href");
+
+            schedule.push({
+              href: href ? `https://www.hinatazaka46.com${href}` : "",
+              category: convertText(
+                item.querySelector(".c-schedule__category")?.textContent || ""
+              ),
+              time: convertText(
+                item.querySelector(".c-schedule__time--list")?.textContent || ""
+              ),
+              text: convertText(
+                item.querySelector(".c-schedule__text")?.textContent || ""
+              ),
+            });
+          });
+
+          return {
+            date,
+            schedule,
+          };
+        }
+      })
+      .filter(
+        (item): item is Exclude<typeof item, undefined> => item !== undefined
+      );
   });
 
 const h_getMember = async (page: puppeteer.Page) =>
@@ -241,8 +266,8 @@ const main = async () => {
   console.log("Scraping end");
   console.log("WriteFileSync start");
   /** DEBUG */
-  // console.log(JSON.stringify(obj));
-  fs.writeFileSync("./schedule.json", JSON.stringify(obj));
+  console.log(JSON.stringify(obj));
+  // fs.writeFileSync("./schedule.json", JSON.stringify(obj));
   console.log("WriteFileSync end");
 };
 
