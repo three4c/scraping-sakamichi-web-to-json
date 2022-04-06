@@ -266,8 +266,8 @@ const main = async () => {
   console.log("Scraping end");
   console.log("WriteFileSync start");
   /** DEBUG */
-  console.log(JSON.stringify(obj));
-  // fs.writeFileSync("./schedule.json", JSON.stringify(obj));
+  // console.log(JSON.stringify(obj));
+  fs.writeFileSync("./schedule.json", JSON.stringify(obj));
   console.log("WriteFileSync end");
 };
 
