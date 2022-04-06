@@ -55,14 +55,20 @@ const n_getSchedule = async (page: puppeteer.Page) => {
           const date = id ? `${year}-${month}-${id}` : "";
           const schedule: ScheduleType[] = [];
 
-          item.querySelectorAll(".m--scone").forEach((item) => {
+          item.querySelectorAll(".m--scone").forEach((itemElement) => {
             schedule.push({
               href:
-                item.querySelector(".m--scone__a")?.getAttribute("href") || "",
+                itemElement
+                  .querySelector(".m--scone__a")
+                  ?.getAttribute("href") || "",
               category:
-                item.querySelector(".m--scone__cat__name")?.textContent || "",
-              time: item.querySelector(".m--scone__start")?.textContent || "",
-              text: item.querySelector(".m--scone__ttl")?.textContent || "",
+                itemElement.querySelector(".m--scone__cat__name")
+                  ?.textContent || "",
+              time:
+                itemElement.querySelector(".m--scone__start")?.textContent ||
+                "",
+              text:
+                itemElement.querySelector(".m--scone__ttl")?.textContent || "",
             });
           });
 
@@ -128,22 +134,27 @@ const h_getSchedule = (page: puppeteer.Page) =>
         const schedule: ScheduleType[] = [];
 
         if (isTargetElement) {
-          item.querySelectorAll(".p-schedule__item a").forEach((item) => {
-            const href = item.getAttribute("href");
+          item
+            .querySelectorAll(".p-schedule__item a")
+            .forEach((itemElement) => {
+              const href = itemElement.getAttribute("href");
 
-            schedule.push({
-              href: href ? `https://www.hinatazaka46.com${href}` : "",
-              category: convertText(
-                item.querySelector(".c-schedule__category")?.textContent || ""
-              ),
-              time: convertText(
-                item.querySelector(".c-schedule__time--list")?.textContent || ""
-              ),
-              text: convertText(
-                item.querySelector(".c-schedule__text")?.textContent || ""
-              ),
+              schedule.push({
+                href: href ? `https://www.hinatazaka46.com${href}` : "",
+                category: convertText(
+                  itemElement.querySelector(".c-schedule__category")
+                    ?.textContent || ""
+                ),
+                time: convertText(
+                  itemElement.querySelector(".c-schedule__time--list")
+                    ?.textContent || ""
+                ),
+                text: convertText(
+                  itemElement.querySelector(".c-schedule__text")?.textContent ||
+                    ""
+                ),
+              });
             });
-          });
 
           return {
             date,
@@ -157,7 +168,7 @@ const h_getSchedule = (page: puppeteer.Page) =>
   });
 
 const h_getMember = async (page: puppeteer.Page) =>
-  page.$$eval(".p-member__item", (element) => {
+  page.$$eval(".sorted.sort-default .p-member__item", (element) => {
     const convertText = (text: string) => text.trim().replace(/\n|\s+/g, "");
     const member: MemberType[] = [];
 
