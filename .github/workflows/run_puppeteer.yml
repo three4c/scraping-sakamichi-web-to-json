@@ -1,8 +1,8 @@
 name: Run puppeteer
 
 on:
-  schedule:
-    - cron: "0 15 * * *" #日本時間 0:00
+  push:
+    branches: [main]
 
 jobs:
   build:
@@ -28,8 +28,8 @@ jobs:
 
       - name: Git setting
         run: |
-          git config --local user.email github-actions
-          git config --local user.name github-actions@github.com
+          git config --local user.email github-actions[bot]@users.noreply.github.com
+          git config --local user.name github-actions[bot]
 
       - name: Commit files
         run: |
