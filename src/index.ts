@@ -201,10 +201,10 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
     await page.waitForTimeout(1000);
     result[item.key] = await item.fn(page);
     /** Github Actionsのデバッグ用 */
-    await page.screenshot({
-      path: `./screenshot/${item.key}.jpeg`,
-      type: "jpeg",
-    });
+    // await page.screenshot({
+    //   path: `./screenshot/${item.key}.jpeg`,
+    //   type: "jpeg",
+    // });
   }
 
   await browser.close();
