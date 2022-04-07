@@ -1,31 +1,12 @@
 import puppeteer from "puppeteer";
 import fs from "fs";
-
-type GroupType = "n_schedule" | "n_member" | "h_schedule" | "h_member";
-
-interface ScrapingInfoType {
-  key: GroupType;
-  url: string;
-  fn: (page: puppeteer.Page) => Promise<FieldType[] | MemberType[]>;
-}
-
-interface FieldType {
-  date: string;
-  schedule: ScheduleType[];
-}
-
-interface ScheduleType {
-  href: string;
-  category: string;
-  time: string;
-  text: string;
-}
-
-interface MemberType {
-  href: string;
-  name: string;
-  src: string;
-}
+import {
+  GroupType,
+  ScrapingInfoType,
+  FieldType,
+  ScheduleType,
+  MemberType,
+} from "types";
 
 /** 乃木坂 */
 const n_getSchedule = async (page: puppeteer.Page) => {
