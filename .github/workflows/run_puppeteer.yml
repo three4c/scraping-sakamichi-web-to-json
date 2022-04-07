@@ -29,7 +29,7 @@ jobs:
         run: yarn build
 
       - name: Run index.js
-        run: node dist/index.js
+        run: node dist/src/index.js
 
       - name: Git setting
         run: |
