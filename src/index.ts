@@ -250,11 +250,13 @@ const main = async () => {
   const field = await scraping(scrapingInfo);
   const obj: ObjType[] = [
     {
+      name: "乃木坂46",
       color: "purple",
       schedule: field.n_schedule,
       member: field.n_member,
     },
     {
+      name: "日向坂46",
       color: "blue",
       schedule: field.h_schedule,
       member: field.h_member,

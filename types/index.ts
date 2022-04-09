@@ -3,6 +3,7 @@ import puppeteer from "puppeteer";
 export type GroupType = "n_schedule" | "n_member" | "h_schedule" | "h_member";
 
 export interface ObjType {
+  name: "乃木坂46" | "日向坂46";
   color: "purple" | "blue";
   schedule: FieldType[] | MemberType[];
   member: FieldType[] | MemberType[];
