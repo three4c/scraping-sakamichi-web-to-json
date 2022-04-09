@@ -6,6 +6,7 @@ import {
   FieldType,
   ScheduleType,
   MemberType,
+  ObjType,
 } from "types";
 
 /** 乃木坂 */
@@ -247,16 +248,18 @@ const main = async () => {
   console.log("Scraping Info", scrapingInfo);
   console.log("Scraping start");
   const field = await scraping(scrapingInfo);
-  const obj = {
-    nogizaka: {
+  const obj: ObjType[] = [
+    {
+      color: "purple",
       schedule: field.n_schedule,
       member: field.n_member,
     },
-    hinatazaka: {
+    {
+      color: "blue",
       schedule: field.h_schedule,
       member: field.h_member,
     },
-  };
+  ];
   console.log("Scraping end");
   console.log("WriteFileSync start");
   /** DEBUG */

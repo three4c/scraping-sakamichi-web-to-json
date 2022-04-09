@@ -2,6 +2,12 @@ import puppeteer from "puppeteer";
 
 export type GroupType = "n_schedule" | "n_member" | "h_schedule" | "h_member";
 
+export interface ObjType {
+  color: "purple" | "blue";
+  schedule: FieldType[] | MemberType[];
+  member: FieldType[] | MemberType[];
+}
+
 export interface ScrapingInfoType {
   key: GroupType;
   url: string;
