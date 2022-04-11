@@ -11,10 +11,10 @@ import {
 
 /** 乃木坂 */
 const n_getSchedule = async (page: puppeteer.Page) => {
-  // await page.click(".b--lng");
-  // await page.waitForTimeout(1000);
-  // await page.click(".b--lng__one.js-lang-swich.hv--op.ja");
-  // await page.waitForTimeout(1000);
+  await page.click(".b--lng");
+  await page.waitForTimeout(1000);
+  await page.click(".b--lng__one.js-lang-swich.hv--op.ja");
+  await page.waitForTimeout(1000);
 
   return page.$$eval(".sc--lists .sc--day", (element) => {
     const today = new Date(
