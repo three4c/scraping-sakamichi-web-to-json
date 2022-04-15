@@ -9,6 +9,21 @@ import {
   ObjType,
 } from "types";
 
+const getToday = () => {
+  const today = new Date(
+    Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000
+  );
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
+  const day = today.getDate();
+
+  return {
+    year,
+    month,
+    day,
+  };
+};
+
 /** 乃木坂 */
 const n_getSchedule = async (page: puppeteer.Page) => {
   await page.click(".b--lng");
@@ -16,13 +31,8 @@ const n_getSchedule = async (page: puppeteer.Page) => {
   await page.click(".b--lng__one.js-lang-swich.hv--op.ja");
   await page.waitForTimeout(1000);
 
-  return page.$$eval(".sc--lists .sc--day", (element) => {
-    const today = new Date(
-      Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000
-    );
-    const year = today.getFullYear();
-    const month = today.getMonth() + 1;
-    const day = today.getDate();
+  return page.$$eval(".sc--lists .sc--day", async (element) => {
+    const { year, month, day } = await window.getToday();
 
     return element
       .map((item) => {
@@ -91,14 +101,8 @@ const n_getMember = async (page: puppeteer.Page) =>
 
 /** 日向坂 */
 const h_getSchedule = (page: puppeteer.Page) =>
-  page.$$eval(".p-schedule__list-group", (element) => {
-    const today = new Date(
-      Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000
-    );
-    const year = today.getFullYear();
-    const month = today.getMonth() + 1;
-    const day = today.getDate();
-
+  page.$$eval(".p-schedule__list-group", async (element) => {
+    const { year, month, day } = await window.getToday();
     const convertText = (text: string) => text.trim().replace(/\n/g, "");
 
     return element
@@ -179,6 +183,7 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   });
 
   const page = await browser.newPage();
+  await page.exposeFunction("getToday", getToday);
 
   /** DEBUG */
   // page.on("console", (msg) => {
@@ -201,11 +206,6 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
     });
     await page.waitForTimeout(1000);
     result[item.key] = await item.fn(page);
-    /** Github Actionsのデバッグ用 */
-    // await page.screenshot({
-    //   path: `./screenshot/${item.key}.jpeg`,
-    //   type: "jpeg",
-    // });
   }
 
   await browser.close();
@@ -215,11 +215,7 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 const h_article = async () => {};
 
 const main = async () => {
-  const today = new Date(
-    Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000
-  );
-  const year = today.getFullYear();
-  const month = today.getMonth() + 1;
+  const { year, month } = getToday();
   const dyParameter = `${year}${`00${month}`.slice(-2)}`;
 
   const scrapingInfo: ScrapingInfoType[] = [

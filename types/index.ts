@@ -32,3 +32,13 @@ export interface MemberType {
   name: string;
   src: string;
 }
+
+declare global {
+  interface Window {
+    getToday: () => Promise<{
+      year: number;
+      month: number;
+      day: number;
+    }>;
+  }
+}
