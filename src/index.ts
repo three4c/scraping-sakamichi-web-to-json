@@ -95,11 +95,13 @@ const n_getSchedule = async (page: puppeteer.Page) => {
 /** n_getScheduleで言語を切り替えているため、こちらではそのままスクレイピングを行う */
 const n_getMember = async (page: puppeteer.Page) =>
   page.$$eval('.m--mem', (element) =>
-    element.map((item) => ({
-      href: item.querySelector('.m--mem__in')?.getAttribute('href') || '',
-      name: (item.querySelector('.m--mem__name')?.textContent || '').replace(/\s+/g, ''),
-      src: item.querySelector<HTMLElement>('.m--bg')?.style.backgroundImage.slice(4, -1).replace(/"/g, '') || '',
-    }))
+    element
+      .filter((item) => item.querySelector('.m--mem__name')?.textContent)
+      .map((item) => ({
+        href: item.querySelector('.m--mem__in')?.getAttribute('href') || '',
+        name: (item.querySelector('.m--mem__name')?.textContent || '').replace(/\s+/g, ''),
+        src: item.querySelector<HTMLElement>('.m--bg')?.style.backgroundImage.slice(4, -1).replace(/"/g, '') || '',
+      }))
   );
 
 /** 日向坂 */
@@ -135,15 +137,17 @@ const h_getMember = async (page: puppeteer.Page) =>
   page.$$eval('.sorted.sort-default .p-member__item', (element) => {
     const convertText = (text: string) => text.trim().replace(/\n|\s+/g, '');
 
-    return element.map((item) => {
-      const href = item.querySelector('a')?.getAttribute('href');
+    return element
+      .filter((item) => item.querySelector('.c-member__name')?.textContent)
+      .map((item) => {
+        const href = item.querySelector('a')?.getAttribute('href');
 
-      return {
-        href: href ? `https://www.hinatazaka46.com${href}` : '',
-        name: convertText(item.querySelector('.c-member__name')?.textContent || ''),
-        src: item.querySelector('img')?.getAttribute('src') || '',
-      };
-    });
+        return {
+          href: href ? `https://www.hinatazaka46.com${href}` : '',
+          name: convertText(item.querySelector('.c-member__name')?.textContent || ''),
+          src: item.querySelector('img')?.getAttribute('src') || '',
+        };
+      });
   });
 
 /** スクレイピング */
