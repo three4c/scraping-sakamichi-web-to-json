@@ -121,7 +121,9 @@ const n_getSchedule = async (page: puppeteer.Page) => {
   date = date.map((item) => ({
     ...item,
     schedule: item.schedule.map((scheduleItem) => {
-      const index = scheduleItem.text.lastIndexOf('」') + 1;
+      const brackets = scheduleItem.text.lastIndexOf('」');
+      const bracketsOutline = scheduleItem.text.lastIndexOf('』');
+      const index = (brackets < bracketsOutline ? bracketsOutline : brackets) + 1;
       const text = scheduleItem.text.slice(0, index);
       const member =
         index !== scheduleItem.text.length
