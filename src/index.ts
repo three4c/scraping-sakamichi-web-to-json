@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer';
 import fs from 'fs';
-import { GroupType, ScrapingInfoType, FieldType, MemberType, ObjType } from 'types';
+import { GroupType, ScrapingInfoType, DateType, MemberType, ObjType } from 'types';
 
 const getToday = () => {
   const today = new Date(Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000);
@@ -18,7 +18,6 @@ const getToday = () => {
 const main = async () => {
   const { year, month } = getToday();
   const dyParameter = `${year}${`00${month}`.slice(-2)}`;
-
   const scrapingInfo: ScrapingInfoType[] = [
     {
       key: 'n_schedule',
@@ -42,7 +41,7 @@ const main = async () => {
     },
   ];
 
-  console.log('start');
+  console.log('Start');
   const field = await scraping(scrapingInfo);
   const obj: ObjType[] = [
     {
@@ -59,102 +58,17 @@ const main = async () => {
     },
   ];
   fs.writeFileSync('./schedule.json', JSON.stringify(obj));
-  console.log('end');
+  console.log('End');
 };
-
-/** 乃木坂 */
-const n_getSchedule = async (page: puppeteer.Page) => {
-  await page.click('.b--lng');
-  await page.waitForTimeout(1000);
-  await page.click('.b--lng__one.js-lang-swich.hv--op.ja');
-  await page.waitForTimeout(1000);
-
-  return page.$$eval('.sc--lists .sc--day', async (element) => {
-    const { year, month, day } = await window.getToday();
-
-    return element
-      .filter((item) => Math.abs(Number(item.querySelector('.sc--day__hd')?.getAttribute('id')) - day) < 2)
-      .map((item) => {
-        const id = item.querySelector('.sc--day__hd')?.getAttribute('id') || undefined;
-        const date = id ? `${year}-${month}-${id}` : '';
-        const schedule = Array.from(item.querySelectorAll('.m--scone')).map((elementItem) => ({
-          href: elementItem.querySelector('.m--scone__a')?.getAttribute('href') || '',
-          category: elementItem.querySelector('.m--scone__cat__name')?.textContent || '',
-          time: elementItem.querySelector('.m--scone__start')?.textContent || '',
-          text: elementItem.querySelector('.m--scone__ttl')?.textContent || '',
-        }));
-
-        return {
-          date,
-          schedule,
-        };
-      });
-  });
-};
-
-/** n_getScheduleで言語を切り替えているため、こちらではそのままスクレイピングを行う */
-const n_getMember = async (page: puppeteer.Page) =>
-  page.$$eval('.m--mem', (element) =>
-    element
-      .filter((item) => item.querySelector('.m--mem__name')?.textContent)
-      .map((item) => ({
-        href: item.querySelector('.m--mem__in')?.getAttribute('href') || '',
-        name: (item.querySelector('.m--mem__name')?.textContent || '').replace(/\s+/g, ''),
-        src: item.querySelector<HTMLElement>('.m--bg')?.style.backgroundImage.slice(4, -1).replace(/"/g, '') || '',
-      }))
-  );
-
-/** 日向坂 */
-const h_getSchedule = (page: puppeteer.Page) =>
-  page.$$eval('.p-schedule__list-group', async (element) => {
-    const { year, month, day } = await window.getToday();
-    const convertText = (text: string) => text.trim().replace(/\n|\s+/g, '');
-
-    return element
-      .filter((item) => Math.abs(Number(item.querySelector('.c-schedule__date--list span')?.textContent) - day) < 2)
-      .map((item) => {
-        const id = item.querySelector('.c-schedule__date--list span')?.textContent || undefined;
-        const date = id ? `${year}-${month}-${id}` : '';
-        const schedule = Array.from(item.querySelectorAll('.p-schedule__item a')).map((elementItem) => {
-          const href = elementItem.getAttribute('href');
-
-          return {
-            href: href ? `https://www.hinatazaka46.com${href}` : '',
-            category: convertText(elementItem.querySelector('.c-schedule__category')?.textContent || ''),
-            time: convertText(elementItem.querySelector('.c-schedule__time--list')?.textContent || ''),
-            text: convertText(elementItem.querySelector('.c-schedule__text')?.textContent || ''),
-          };
-        });
-
-        return {
-          date,
-          schedule,
-        };
-      });
-  });
-
-const h_getMember = async (page: puppeteer.Page) =>
-  page.$$eval('.sorted.sort-default .p-member__item', (element) => {
-    const convertText = (text: string) => text.trim().replace(/\n|\s+/g, '');
-
-    return element
-      .filter((item) => item.querySelector('.c-member__name')?.textContent)
-      .map((item) => {
-        const href = item.querySelector('a')?.getAttribute('href');
-
-        return {
-          href: href ? `https://www.hinatazaka46.com${href}` : '',
-          name: convertText(item.querySelector('.c-member__name')?.textContent || ''),
-          src: item.querySelector('img')?.getAttribute('src') || '',
-        };
-      });
-  });
 
 /** スクレイピング */
 const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    headless: true,
+    slowMo: 0,
+  });
   const page = await browser.newPage();
-  const result: { [key in GroupType]: FieldType[] | MemberType[] } = {
+  const result: { [key in GroupType]: DateType[] | MemberType[] } = {
     n_schedule: [],
     n_member: [],
     h_schedule: [],
@@ -174,5 +88,136 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   await browser.close();
   return result;
 };
+
+/** 乃木坂 */
+const n_getSchedule = async (page: puppeteer.Page) => {
+  await page.click('.b--lng');
+  await page.waitForTimeout(1000);
+  await page.click('.b--lng__one.js-lang-swich.hv--op.ja');
+  await page.waitForTimeout(1000);
+
+  let date: DateType[] = await page.$$eval('.sc--lists .sc--day', async (element) => {
+    const { year, month, day } = await window.getToday();
+
+    return element
+      .filter((item) => Math.abs(Number(item.querySelector('.sc--day__hd')?.getAttribute('id')) - day) < 2)
+      .map((item) => {
+        const id = item.querySelector('.sc--day__hd')?.getAttribute('id') || undefined;
+        const date = id ? `${year}-${month}-${id}` : '';
+        const schedule = Array.from(item.querySelectorAll('.m--scone')).map((elementItem) => ({
+          href: elementItem.querySelector('.m--scone__a')?.getAttribute('href') || '',
+          category: elementItem.querySelector('.m--scone__cat__name')?.textContent || '',
+          time: elementItem.querySelector('.m--scone__start')?.textContent || undefined,
+          text: elementItem.querySelector('.m--scone__ttl')?.textContent || '',
+        }));
+
+        return {
+          date,
+          schedule,
+        };
+      });
+  });
+
+  date = date.map((item) => ({
+    ...item,
+    schedule: item.schedule.map((scheduleItem) => {
+      const index = scheduleItem.text.lastIndexOf('」') + 1;
+      const text = scheduleItem.text.slice(0, index);
+      const member =
+        index !== scheduleItem.text.length
+          ? scheduleItem.text
+              .slice(index, scheduleItem.text.length)
+              .split('、')
+              .map((nameItem) => ({
+                name: nameItem,
+              }))
+          : undefined;
+
+      return {
+        ...scheduleItem,
+        text,
+        member,
+      };
+    }),
+  }));
+
+  return date;
+};
+
+/** n_getScheduleで言語を切り替えているため、こちらではそのままスクレイピングを行う */
+const n_getMember = async (page: puppeteer.Page) =>
+  page.$$eval('.m--mem', (element) =>
+    element
+      .filter((item) => item.querySelector('.m--mem__name')?.textContent)
+      .map((item) => ({
+        href: item.querySelector('.m--mem__in')?.getAttribute('href') || '',
+        name: (item.querySelector('.m--mem__name')?.textContent || '').replace(/\s+/g, ''),
+        src: item.querySelector<HTMLElement>('.m--bg')?.style.backgroundImage.slice(4, -1).replace(/"/g, '') || '',
+      }))
+  );
+
+/** 日向坂 */
+const h_getSchedule = async (page: puppeteer.Page) => {
+  let date: DateType[] = await page.$$eval('.p-schedule__list-group', async (element) => {
+    const { year, month, day } = await window.getToday();
+    const convertText = (text: string) => text.trim().replace(/\n|\s+/g, '');
+
+    return element
+      .filter((item) => Math.abs(Number(item.querySelector('.c-schedule__date--list span')?.textContent) - day) < 2)
+      .map((item) => {
+        const id = item.querySelector('.c-schedule__date--list span')?.textContent || undefined;
+        const date = id ? `${year}-${month}-${id}` : '';
+        const schedule = Array.from(item.querySelectorAll('.p-schedule__item a')).map((elementItem) => {
+          const href = elementItem.getAttribute('href');
+
+          return {
+            href: href ? `https://www.hinatazaka46.com${href}` : '',
+            category: convertText(elementItem.querySelector('.c-schedule__category')?.textContent || ''),
+            time: convertText(elementItem.querySelector('.c-schedule__time--list')?.textContent || '') || undefined,
+            text: convertText(elementItem.querySelector('.c-schedule__text')?.textContent || ''),
+          };
+        });
+
+        return {
+          date,
+          schedule,
+        };
+      });
+  });
+
+  for (let i = 0; i < date.length; i++) {
+    for (let j = 0; j < date[i].schedule.length; j++) {
+      await page.goto(date[i].schedule[j].href);
+      const member = await page.$$eval('.c-article__tag a', (element) => {
+        const convertText = (text: string) => text.trim().replace(/\n|\s+/g, '');
+
+        return element.map((item) => ({
+          name: convertText(item.textContent || ''),
+        }));
+      });
+      date[i].schedule[j].member = member.length ? member : undefined;
+      await page.waitForTimeout(1000);
+    }
+  }
+
+  return date;
+};
+
+const h_getMember = async (page: puppeteer.Page) =>
+  page.$$eval('.sorted.sort-default .p-member__item', (element) => {
+    const convertText = (text: string) => text.trim().replace(/\n|\s+/g, '');
+
+    return element
+      .filter((item) => item.querySelector('.c-member__name')?.textContent)
+      .map((item) => {
+        const href = item.querySelector('a')?.getAttribute('href');
+
+        return {
+          href: href ? `https://www.hinatazaka46.com${href}` : '',
+          name: convertText(item.querySelector('.c-member__name')?.textContent || ''),
+          src: item.querySelector('img')?.getAttribute('src') || '',
+        };
+      });
+  });
 
 main();
