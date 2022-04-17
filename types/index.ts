@@ -1,6 +1,11 @@
 import puppeteer from "puppeteer";
 
-export type GroupType = "n_schedule" | "n_member" | "h_schedule" | "h_member";
+export type GroupType =
+  | "n_schedule"
+  | "n_member"
+  | "h_schedule"
+  | "h_member"
+  | "h_article";
 
 export interface ObjType {
   name: "乃木坂46" | "日向坂46";
@@ -20,7 +25,7 @@ export interface FieldType {
   schedule: ScheduleType[];
 }
 
-export interface ScheduleType {
+interface ScheduleType {
   href: string;
   category: string;
   time: string;
