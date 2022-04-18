@@ -31,6 +31,7 @@ interface ScheduleType {
 export interface MemberType {
   href: string;
   name: string;
+  hiragana: string;
   src: string;
 }
 
