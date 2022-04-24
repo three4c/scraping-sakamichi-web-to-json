@@ -5,8 +5,8 @@ import { GroupType, ScrapingInfoType, DateType, MemberType, ObjType } from 'type
 const getToday = () => {
   const today = new Date(Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000);
   const year = today.getFullYear();
-  const month = today.getMonth() + 1;
-  const day = today.getDate();
+  const month = `0${today.getMonth() + 1}`.slice(-2);
+  const day = `0${today.getDate()}`.slice(-2);
 
   return {
     year,
@@ -19,7 +19,7 @@ const convertText = (text: string) => text.trim().replace(/\n|\s+/g, '');
 
 const main = async () => {
   const { year, month } = getToday();
-  const dyParameter = `${year}${`00${month}`.slice(-2)}`;
+  const dyParameter = `${year}${month}`;
   const scrapingInfo: ScrapingInfoType[] = [
     {
       key: 'n_schedule',
@@ -102,7 +102,7 @@ const n_getSchedule = async (page: puppeteer.Page) => {
     const { year, month, day } = await window.getToday();
     const convertTime = (time: string) => {
       const matchText = time.match(/([0-9]|1[0-9]|2[0-9]):[0-5][0-9]/g);
-      return matchText ? matchText : undefined;
+      return matchText ? matchText.map((item) => `0${item}`.slice(-5)) : undefined;
     };
 
     return element
@@ -179,7 +179,7 @@ const h_getSchedule = async (page: puppeteer.Page) => {
     const convertText = (text: string) => text.trim().replace(/\n|\s+/g, '');
     const convertTime = (time: string) => {
       const matchText = time.match(/([0-9]|1[0-9]|2[0-9]):[0-5][0-9]/g);
-      return matchText ? matchText : undefined;
+      return matchText ? matchText.map((item) => `0${item}`.slice(-5)) : undefined;
     };
 
     return element
