@@ -100,19 +100,27 @@ const n_getSchedule = async (page: puppeteer.Page) => {
 
   let date: DateType[] = await page.$$eval('.sc--lists .sc--day', async (element) => {
     const { year, month, day } = await window.getToday();
+    const convertTime = (time: string) => {
+      const matchText = time.match(/([0-9]|1[0-9]|2[0-9]):[0-5][0-9]/g);
+      return matchText ? matchText : undefined;
+    };
 
     return element
       .filter((item) => Math.abs(Number(item.querySelector('.sc--day__hd')?.getAttribute('id')) - day) < 2)
       .map((item) => {
         const id = item.querySelector('.sc--day__hd')?.getAttribute('id') || undefined;
         const date = id ? `${year}-${month}-${id}` : '';
-        const schedule = Array.from(item.querySelectorAll('.m--scone')).map((elementItem) => ({
-          href: elementItem.querySelector('.m--scone__a')?.getAttribute('href') || '',
-          category: elementItem.querySelector('.m--scone__cat__name')?.textContent || '',
-          startTime: elementItem.querySelector('.m--scone__start')?.textContent?.split('〜')[0] || undefined,
-          endTime: elementItem.querySelector('.m--scone__start')?.textContent?.split('〜')[1] || undefined,
-          text: elementItem.querySelector('.m--scone__ttl')?.textContent || '',
-        }));
+        const schedule = Array.from(item.querySelectorAll('.m--scone')).map((elementItem) => {
+          const time = convertTime(elementItem.querySelector('.m--scone__start')?.textContent || '');
+
+          return {
+            href: elementItem.querySelector('.m--scone__a')?.getAttribute('href') || '',
+            category: elementItem.querySelector('.m--scone__cat__name')?.textContent || '',
+            startTime: time ? time[0] : undefined,
+            endTime: time ? time[1] : undefined,
+            text: elementItem.querySelector('.m--scone__ttl')?.textContent || '',
+          };
+        });
 
         return {
           date,
@@ -169,6 +177,10 @@ const h_getSchedule = async (page: puppeteer.Page) => {
   let date: DateType[] = await page.$$eval('.p-schedule__list-group', async (element) => {
     const { year, month, day } = await window.getToday();
     const convertText = (text: string) => text.trim().replace(/\n|\s+/g, '');
+    const convertTime = (time: string) => {
+      const matchText = time.match(/([0-9]|1[0-9]|2[0-9]):[0-5][0-9]/g);
+      return matchText ? matchText : undefined;
+    };
 
     return element
       .filter((item) => Math.abs(Number(item.querySelector('.c-schedule__date--list span')?.textContent) - day) < 2)
@@ -177,16 +189,15 @@ const h_getSchedule = async (page: puppeteer.Page) => {
         const date = id ? `${year}-${month}-${id}` : '';
         const schedule = Array.from(item.querySelectorAll('.p-schedule__item a')).map((elementItem) => {
           const href = elementItem.getAttribute('href');
+          const time = convertTime(
+            convertText(elementItem.querySelector('.c-schedule__time--list')?.textContent || '')
+          );
 
           return {
             href: href ? `https://www.hinatazaka46.com${href}` : '',
             category: convertText(elementItem.querySelector('.c-schedule__category')?.textContent || ''),
-            startTime:
-              convertText(elementItem.querySelector('.c-schedule__time--list')?.textContent || '').split('～')[0] ||
-              undefined,
-            endTime:
-              convertText(elementItem.querySelector('.c-schedule__time--list')?.textContent || '').split('～')[1] ||
-              undefined,
+            startTime: time ? time[0] : undefined,
+            endTime: time ? time[1] : undefined,
             text: convertText(elementItem.querySelector('.c-schedule__text')?.textContent || ''),
           };
         });
