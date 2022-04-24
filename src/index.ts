@@ -15,6 +15,8 @@ const getToday = () => {
   };
 };
 
+const convertText = (text: string) => text.trim().replace(/\n|\s+/g, '');
+
 const main = async () => {
   const { year, month } = getToday();
   const dyParameter = `${year}${`00${month}`.slice(-2)}`;
@@ -124,14 +126,14 @@ const n_getSchedule = async (page: puppeteer.Page) => {
       const bracketsIndex = scheduleItem.text.lastIndexOf('」');
       const bracketsOutlineIndex = scheduleItem.text.lastIndexOf('』');
       const index = (bracketsIndex < bracketsOutlineIndex ? bracketsOutlineIndex : bracketsIndex) + 1;
-      const text = index === 0 ? scheduleItem.text : scheduleItem.text.slice(0, index);
+      const text = index === 0 ? convertText(scheduleItem.text) : scheduleItem.text.slice(0, index);
       const member =
         index !== scheduleItem.text.length
           ? scheduleItem.text
               .slice(index, scheduleItem.text.length)
               .split('、')
               .map((nameItem) => ({
-                name: nameItem,
+                name: convertText(nameItem),
               }))
           : undefined;
 
