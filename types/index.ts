@@ -24,7 +24,8 @@ interface ScheduleType {
   href: string;
   category: string;
   text: string;
-  time?: string;
+  startTime?: string;
+  endTime?: string;
   member?: Pick<MemberType, 'name'>[];
 }
 

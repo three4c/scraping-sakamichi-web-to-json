@@ -109,7 +109,8 @@ const n_getSchedule = async (page: puppeteer.Page) => {
         const schedule = Array.from(item.querySelectorAll('.m--scone')).map((elementItem) => ({
           href: elementItem.querySelector('.m--scone__a')?.getAttribute('href') || '',
           category: elementItem.querySelector('.m--scone__cat__name')?.textContent || '',
-          time: elementItem.querySelector('.m--scone__start')?.textContent || undefined,
+          startTime: elementItem.querySelector('.m--scone__start')?.textContent?.split('〜')[0] || undefined,
+          endTime: elementItem.querySelector('.m--scone__start')?.textContent?.split('〜')[1] || undefined,
           text: elementItem.querySelector('.m--scone__ttl')?.textContent || '',
         }));
 
@@ -180,7 +181,12 @@ const h_getSchedule = async (page: puppeteer.Page) => {
           return {
             href: href ? `https://www.hinatazaka46.com${href}` : '',
             category: convertText(elementItem.querySelector('.c-schedule__category')?.textContent || ''),
-            time: convertText(elementItem.querySelector('.c-schedule__time--list')?.textContent || '') || undefined,
+            startTime:
+              convertText(elementItem.querySelector('.c-schedule__time--list')?.textContent || '').split('～')[0] ||
+              undefined,
+            endTime:
+              convertText(elementItem.querySelector('.c-schedule__time--list')?.textContent || '').split('～')[1] ||
+              undefined,
             text: convertText(elementItem.querySelector('.c-schedule__text')?.textContent || ''),
           };
         });
