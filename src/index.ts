@@ -165,7 +165,7 @@ const n_getSchedule = async (page: puppeteer.Page) => {
 
         return {
           ...item,
-          startTime: `${Number(startTime[0]) - 24}:${startTime[1]}`,
+          startTime: `0${Number(startTime[0]) - 24}:${startTime[1]}`.slice(-5),
           endTime: endTime ? `${Number(endTime[0]) - 24}:${endTime[1]}` : undefined,
         };
       });
@@ -260,7 +260,7 @@ const h_getSchedule = async (page: puppeteer.Page) => {
 
         return {
           ...item,
-          startTime: `${Number(startTime[0]) - 24}:${startTime[1]}`,
+          startTime: `0${Number(startTime[0]) - 24}:${startTime[1]}`.slice(-5),
           endTime: endTime ? `${Number(endTime[0]) - 24}:${endTime[1]}` : undefined,
         };
       });
