@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer';
 import fs from 'fs';
-import { GroupType, ScrapingInfoType, DateType, MemberType, ObjType } from 'types';
+import { GroupType, ScrapingInfoType, DateType, MemberType, ObjType, ScheduleType, ScheduleFilterType } from 'types';
 
 const getToday = () => {
   const today = new Date(Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000);
@@ -154,6 +154,31 @@ const n_getSchedule = async (page: puppeteer.Page) => {
     }),
   }));
 
+  for (let i = 0; i < date.length; i++) {
+    const overTimeSchedule = date[i].schedule
+      .filter((item: ScheduleType): item is ScheduleFilterType =>
+        Boolean(item.startTime && Number(item.startTime.split(':')[0]) >= 24)
+      )
+      .map((item) => {
+        const startTime = item.startTime?.split(':');
+        const endTime = item.endTime?.split(':');
+
+        return {
+          ...item,
+          startTime: `${Number(startTime[0]) - 24}:${startTime[1]}`,
+          endTime: endTime ? `${Number(endTime[0]) - 24}:${endTime[1]}` : undefined,
+        };
+      });
+
+    for (let j = 0; j < overTimeSchedule.length; j++) {
+      date[i].schedule = date[i].schedule.filter((item) => item.text !== overTimeSchedule[j].text);
+    }
+
+    if (i + 1 < date.length) {
+      date[i + 1].schedule = [...date[i + 1].schedule, ...overTimeSchedule];
+    }
+  }
+
   return date;
 };
 
@@ -221,6 +246,31 @@ const h_getSchedule = async (page: puppeteer.Page) => {
       });
       date[i].schedule[j].member = member.length ? member : undefined;
       await page.waitForTimeout(1000);
+    }
+  }
+
+  for (let i = 0; i < date.length; i++) {
+    const overTimeSchedule = date[i].schedule
+      .filter((item: ScheduleType): item is ScheduleFilterType =>
+        Boolean(item.startTime && Number(item.startTime.split(':')[0]) >= 24)
+      )
+      .map((item) => {
+        const startTime = item.startTime?.split(':');
+        const endTime = item.endTime?.split(':');
+
+        return {
+          ...item,
+          startTime: `${Number(startTime[0]) - 24}:${startTime[1]}`,
+          endTime: endTime ? `${Number(endTime[0]) - 24}:${endTime[1]}` : undefined,
+        };
+      });
+
+    for (let j = 0; j < overTimeSchedule.length; j++) {
+      date[i].schedule = date[i].schedule.filter((item) => item.text !== overTimeSchedule[j].text);
+    }
+
+    if (i + 1 < date.length) {
+      date[i + 1].schedule = [...date[i + 1].schedule, ...overTimeSchedule];
     }
   }
 

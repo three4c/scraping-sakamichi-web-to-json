@@ -20,7 +20,11 @@ export interface DateType {
   schedule: ScheduleType[];
 }
 
-interface ScheduleType {
+export interface ScheduleFilterType extends ScheduleType {
+  startTime: string;
+}
+
+export interface ScheduleType {
   href: string;
   category: string;
   text: string;
