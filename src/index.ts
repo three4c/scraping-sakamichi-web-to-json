@@ -1,5 +1,5 @@
-import puppeteer from 'puppeteer';
 import fs from 'fs';
+import puppeteer from 'puppeteer';
 import { GroupType, ScrapingInfoType, DateType, MemberType, ObjType, ScheduleType, ScheduleFilterType } from 'types';
 
 const getToday = () => {
@@ -199,7 +199,7 @@ const n_getMember = async (page: puppeteer.Page) =>
 
 /** 日向坂 */
 const h_getSchedule = async (page: puppeteer.Page) => {
-  let date: DateType[] = await page.$$eval('.p-schedule__list-group', async (element) => {
+  const date: DateType[] = await page.$$eval('.p-schedule__list-group', async (element) => {
     const { year, month, day } = await window.getToday();
     const convertText = (text: string) => text.trim().replace(/\n|\s+/g, '');
     const convertTime = (time: string) => {
