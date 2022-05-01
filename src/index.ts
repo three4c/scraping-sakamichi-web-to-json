@@ -95,7 +95,7 @@ const n_getSchedule = async (page: puppeteer.Page) => {
       .filter((item) => Math.abs(Number(item.querySelector('.sc--day__hd')?.getAttribute('id')) - day) < 2)
       .map((item) => {
         const id = item.querySelector('.sc--day__hd')?.getAttribute('id') || undefined;
-        const date = id ? `${year}-${month}-${id}` : '';
+        const date = id ? `${year}-${month}-${`0${id}`.slice(-2)}` : '';
         const schedule = Array.from(item.querySelectorAll('.m--scone')).map((elementItem) => {
           const time = convertTime(elementItem.querySelector('.m--scone__start')?.textContent || '');
 
@@ -197,7 +197,7 @@ const h_getSchedule = async (page: puppeteer.Page) => {
       .filter((item) => Math.abs(Number(item.querySelector('.c-schedule__date--list span')?.textContent) - day) < 2)
       .map((item) => {
         const id = item.querySelector('.c-schedule__date--list span')?.textContent || undefined;
-        const date = id ? `${year}-${month}-${id}` : '';
+        const date = id ? `${year}-${month}-${`0${id}`.slice(-2)}` : '';
         const schedule = Array.from(item.querySelectorAll('.p-schedule__item a')).map((elementItem) => {
           const href = elementItem.getAttribute('href');
           const time = convertTime(
