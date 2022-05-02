@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { getToday, convertText } from 'lib';
+import { getToday, convertText, convertTime } from 'lib';
 import puppeteer from 'puppeteer';
 import { GroupType, ScrapingInfoType, DateType, MemberType, ObjType, ScheduleType, ScheduleFilterType } from 'types';
 
@@ -29,7 +29,7 @@ const main = async () => {
     },
   ];
 
-  console.log('Start');
+  console.log('🚀 Start');
   const field = await scraping(scrapingInfo);
   const obj: ObjType[] = [
     {
@@ -46,7 +46,7 @@ const main = async () => {
     },
   ];
   fs.writeFileSync('./schedule.json', JSON.stringify(obj));
-  console.log('End');
+  console.log('🎉 End');
 };
 
 /** スクレイピング */
@@ -65,6 +65,8 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   };
 
   await page.exposeFunction('getToday', getToday);
+  await page.exposeFunction('convertText', convertText);
+  await page.exposeFunction('convertTime', convertTime);
   await page.setViewport({ width: 320, height: 640 });
 
   for (const item of scrapingInfo) {
@@ -86,33 +88,33 @@ const n_getSchedule = async (page: puppeteer.Page) => {
 
   let date: DateType[] = await page.$$eval('.sc--lists .sc--day', async (element) => {
     const { year, month, day } = await window.getToday();
-    const convertTime = (time: string) => {
-      const matchText = time.match(/([0-9]|1[0-9]|2[0-9]):[0-5][0-9]/g);
-      return matchText ? matchText.map((item) => `0${item}`.slice(-5)) : undefined;
-    };
 
-    return element
-      .filter((item) => Math.abs(Number(item.querySelector('.sc--day__hd')?.getAttribute('id')) - day) < 2)
-      .map((item) => {
-        const id = item.querySelector('.sc--day__hd')?.getAttribute('id') || undefined;
-        const date = id ? `${year}-${month}-${`0${id}`.slice(-2)}` : '';
-        const schedule = Array.from(item.querySelectorAll('.m--scone')).map((elementItem) => {
-          const time = convertTime(elementItem.querySelector('.m--scone__start')?.textContent || '');
+    return Promise.all(
+      element
+        .filter((item) => Math.abs(Number(item.querySelector('.sc--day__hd')?.getAttribute('id')) - day) < 2)
+        .map(async (item) => {
+          const id = item.querySelector('.sc--day__hd')?.getAttribute('id') || undefined;
+          const date = id ? `${year}-${month}-${`0${id}`.slice(-2)}` : '';
+          const schedule = await Promise.all(
+            Array.from(item.querySelectorAll('.m--scone')).map(async (elementItem) => {
+              const time = await window.convertTime(elementItem.querySelector('.m--scone__start')?.textContent || '');
+
+              return {
+                href: elementItem.querySelector('.m--scone__a')?.getAttribute('href') || '',
+                category: elementItem.querySelector('.m--scone__cat__name')?.textContent || '',
+                startTime: time ? time[0] : undefined,
+                endTime: time ? time[1] : undefined,
+                text: elementItem.querySelector('.m--scone__ttl')?.textContent || '',
+              };
+            })
+          );
 
           return {
-            href: elementItem.querySelector('.m--scone__a')?.getAttribute('href') || '',
-            category: elementItem.querySelector('.m--scone__cat__name')?.textContent || '',
-            startTime: time ? time[0] : undefined,
-            endTime: time ? time[1] : undefined,
-            text: elementItem.querySelector('.m--scone__ttl')?.textContent || '',
+            date,
+            schedule,
           };
-        });
-
-        return {
-          date,
-          schedule,
-        };
-      });
+        })
+    );
   });
 
   date = date.map((item) => ({
@@ -152,7 +154,7 @@ const n_getSchedule = async (page: puppeteer.Page) => {
         return {
           ...item,
           startTime: `0${Number(startTime[0]) - 24}:${startTime[1]}`.slice(-5),
-          endTime: endTime ? `${Number(endTime[0]) - 24}:${endTime[1]}` : undefined,
+          endTime: endTime ? `0${Number(endTime[0]) - 24}:${endTime[1]}`.slice(-5) : undefined,
         };
       });
 
@@ -170,66 +172,68 @@ const n_getSchedule = async (page: puppeteer.Page) => {
 
 /** n_getScheduleで言語を切り替えているため、こちらではそのままスクレイピングを行う */
 const n_getMember = async (page: puppeteer.Page) =>
-  page.$$eval('.m--mem', (element) => {
-    const convertText = (text: string) => text.trim().replace(/\n|\s+/g, '');
-
-    return element
-      .filter((item) => item.querySelector('.m--mem__name')?.textContent)
-      .map((item) => ({
-        href: item.querySelector('.m--mem__in')?.getAttribute('href') || '',
-        name: convertText(item.querySelector('.m--mem__name')?.textContent || ''),
-        hiragana: convertText(item.querySelector('.m--mem__kn')?.textContent || ''),
-        src: item.querySelector<HTMLElement>('.m--bg')?.style.backgroundImage.slice(4, -1).replace(/"/g, '') || '',
-      }));
-  });
+  page.$$eval('.m--mem', (element) =>
+    Promise.all(
+      element
+        .filter((item) => item.querySelector('.m--mem__name')?.textContent)
+        .map(async (item) => ({
+          href: item.querySelector('.m--mem__in')?.getAttribute('href') || '',
+          name: await window.convertText(item.querySelector('.m--mem__name')?.textContent || ''),
+          hiragana: await window.convertText(item.querySelector('.m--mem__kn')?.textContent || ''),
+          src: item.querySelector<HTMLElement>('.m--bg')?.style.backgroundImage.slice(4, -1).replace(/"/g, '') || '',
+        }))
+    )
+  );
 
 /** 日向坂 */
 const h_getSchedule = async (page: puppeteer.Page) => {
   const date: DateType[] = await page.$$eval('.p-schedule__list-group', async (element) => {
     const { year, month, day } = await window.getToday();
-    const convertText = (text: string) => text.trim().replace(/\n|\s+/g, '');
-    const convertTime = (time: string) => {
-      const matchText = time.match(/([0-9]|1[0-9]|2[0-9]):[0-5][0-9]/g);
-      return matchText ? matchText.map((item) => `0${item}`.slice(-5)) : undefined;
-    };
 
-    return element
-      .filter((item) => Math.abs(Number(item.querySelector('.c-schedule__date--list span')?.textContent) - day) < 2)
-      .map((item) => {
-        const id = item.querySelector('.c-schedule__date--list span')?.textContent || undefined;
-        const date = id ? `${year}-${month}-${`0${id}`.slice(-2)}` : '';
-        const schedule = Array.from(item.querySelectorAll('.p-schedule__item a')).map((elementItem) => {
-          const href = elementItem.getAttribute('href');
-          const time = convertTime(
-            convertText(elementItem.querySelector('.c-schedule__time--list')?.textContent || '')
+    return Promise.all(
+      element
+        .filter((item) => Math.abs(Number(item.querySelector('.c-schedule__date--list span')?.textContent) - day) < 2)
+        .map(async (item) => {
+          const id = item.querySelector('.c-schedule__date--list span')?.textContent || undefined;
+          const date = id ? `${year}-${month}-${`0${id}`.slice(-2)}` : '';
+          const schedule = await Promise.all(
+            Array.from(item.querySelectorAll('.p-schedule__item a')).map(async (elementItem) => {
+              const href = elementItem.getAttribute('href');
+              const time = await window.convertTime(
+                await window.convertText(elementItem.querySelector('.c-schedule__time--list')?.textContent || '')
+              );
+
+              return {
+                href: href ? `https://www.hinatazaka46.com${href}` : '',
+                category: await window.convertText(
+                  elementItem.querySelector('.c-schedule__category')?.textContent || ''
+                ),
+                startTime: time ? time[0] : undefined,
+                endTime: time ? time[1] : undefined,
+                text: await window.convertText(elementItem.querySelector('.c-schedule__text')?.textContent || ''),
+              };
+            })
           );
 
           return {
-            href: href ? `https://www.hinatazaka46.com${href}` : '',
-            category: convertText(elementItem.querySelector('.c-schedule__category')?.textContent || ''),
-            startTime: time ? time[0] : undefined,
-            endTime: time ? time[1] : undefined,
-            text: convertText(elementItem.querySelector('.c-schedule__text')?.textContent || ''),
+            date,
+            schedule,
           };
-        });
-
-        return {
-          date,
-          schedule,
-        };
-      });
+        })
+    );
   });
 
   for (let i = 0; i < date.length; i++) {
     for (let j = 0; j < date[i].schedule.length; j++) {
       await page.goto(date[i].schedule[j].href);
-      const member = await page.$$eval('.c-article__tag a', (element) => {
-        const convertText = (text: string) => text.trim().replace(/\n|\s+/g, '');
+      const member = await page.$$eval('.c-article__tag a', (element) =>
+        Promise.all(
+          element.map(async (item) => ({
+            name: await window.convertText(item.textContent || ''),
+          }))
+        )
+      );
 
-        return element.map((item) => ({
-          name: convertText(item.textContent || ''),
-        }));
-      });
       date[i].schedule[j].member = member.length ? member : undefined;
       await page.waitForTimeout(1000);
     }
@@ -247,7 +251,7 @@ const h_getSchedule = async (page: puppeteer.Page) => {
         return {
           ...item,
           startTime: `0${Number(startTime[0]) - 24}:${startTime[1]}`.slice(-5),
-          endTime: endTime ? `${Number(endTime[0]) - 24}:${endTime[1]}` : undefined,
+          endTime: endTime ? `0${Number(endTime[0]) - 24}:${endTime[1]}`.slice(-5) : undefined,
         };
       });
 
@@ -264,21 +268,21 @@ const h_getSchedule = async (page: puppeteer.Page) => {
 };
 
 const h_getMember = async (page: puppeteer.Page) =>
-  page.$$eval('.sorted.sort-default .p-member__item', (element) => {
-    const convertText = (text: string) => text.trim().replace(/\n|\s+/g, '');
+  page.$$eval('.sorted.sort-default .p-member__item', (element) =>
+    Promise.all(
+      element
+        .filter((item) => item.querySelector('.c-member__name')?.textContent)
+        .map(async (item) => {
+          const href = item.querySelector('a')?.getAttribute('href');
 
-    return element
-      .filter((item) => item.querySelector('.c-member__name')?.textContent)
-      .map((item) => {
-        const href = item.querySelector('a')?.getAttribute('href');
-
-        return {
-          href: href ? `https://www.hinatazaka46.com${href}` : '',
-          name: convertText(item.querySelector('.c-member__name')?.textContent || ''),
-          hiragana: convertText(item.querySelector('.c-member__kana')?.textContent || ''),
-          src: item.querySelector('img')?.getAttribute('src') || '',
-        };
-      });
-  });
+          return {
+            href: href ? `https://www.hinatazaka46.com${href}` : '',
+            name: await window.convertText(item.querySelector('.c-member__name')?.textContent || ''),
+            hiragana: await window.convertText(item.querySelector('.c-member__kana')?.textContent || ''),
+            src: item.querySelector('img')?.getAttribute('src') || '',
+          };
+        })
+    )
+  );
 
 main();

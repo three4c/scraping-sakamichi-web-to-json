@@ -47,5 +47,7 @@ declare global {
       month: number;
       day: number;
     }>;
+    convertText: (text: string) => Promise<string>;
+    convertTime: (time: string) => Promise<string[] | undefined>;
   }
 }
