@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { getToday, convertText, convertTime } from 'lib';
 import puppeteer from 'puppeteer';
-import { GroupType, ScrapingInfoType, DateType, MemberType, ObjType, ScheduleType, ScheduleFilterType } from 'types';
+import { ScrapingInfoType, DateType, MemberType, ObjType, ScheduleType, ScheduleFilterType, ResultType } from 'types';
 
 const main = async () => {
   const { year, month } = getToday();
@@ -56,12 +56,11 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
     slowMo: 0,
   });
   const page = await browser.newPage();
-  const result: { [key in GroupType]: DateType[] | MemberType[] } = {
+  const result: ResultType = {
     n_schedule: [],
     n_member: [],
     h_schedule: [],
     h_member: [],
-    h_article: [],
   };
 
   await page.exposeFunction('getToday', getToday);
@@ -72,7 +71,14 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   for (const item of scrapingInfo) {
     await page.goto(item.url);
     await page.waitForTimeout(1000);
-    result[item.key] = await item.fn(page);
+
+    if (item.key === 'n_schedule' || item.key === 'h_schedule') {
+      result[item.key] = await item.fn(page);
+    }
+
+    if (item.key === 'n_member' || item.key === 'h_member') {
+      result[item.key] = await item.fn(page);
+    }
   }
 
   await browser.close();
@@ -80,7 +86,7 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 };
 
 /** 乃木坂 */
-const n_getSchedule = async (page: puppeteer.Page) => {
+const n_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
   await page.click('.b--lng');
   await page.waitForTimeout(1000);
   await page.click('.b--lng__one.js-lang-swich.hv--op.ja');
@@ -171,7 +177,7 @@ const n_getSchedule = async (page: puppeteer.Page) => {
 };
 
 /** n_getScheduleで言語を切り替えているため、こちらではそのままスクレイピングを行う */
-const n_getMember = async (page: puppeteer.Page) =>
+const n_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
   page.$$eval('.m--mem', (element) =>
     Promise.all(
       element
@@ -186,7 +192,7 @@ const n_getMember = async (page: puppeteer.Page) =>
   );
 
 /** 日向坂 */
-const h_getSchedule = async (page: puppeteer.Page) => {
+const h_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
   const date: DateType[] = await page.$$eval('.p-schedule__list-group', async (element) => {
     const { year, month, day } = await window.getToday();
 
@@ -267,7 +273,7 @@ const h_getSchedule = async (page: puppeteer.Page) => {
   return date;
 };
 
-const h_getMember = async (page: puppeteer.Page) =>
+const h_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
   page.$$eval('.sorted.sort-default .p-member__item', (element) =>
     Promise.all(
       element
