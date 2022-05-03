@@ -1,7 +1,42 @@
 import fs from 'fs';
-import { getToday, convertText, convertTime } from 'lib';
+import dotenv from 'dotenv';
+import { initializeApp, cert, ServiceAccount } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getToday, convertText, convertTime, sliceBrackets, convertHalfToFull } from 'lib';
 import puppeteer from 'puppeteer';
-import { ScrapingInfoType, DateType, MemberType, ObjType, ScheduleType, ScheduleFilterType, ResultType } from 'types';
+import {
+  ScrapingInfoType,
+  DateType,
+  MemberType,
+  DataType,
+  ScheduleType,
+  ScheduleFilterType,
+  ResultType,
+  ConvertDataType,
+} from 'types';
+
+dotenv.config();
+
+const serviceAccount: ServiceAccount = {
+  projectId: process.env.PROJECT_ID,
+  clientEmail: process.env.CLIENT_EMAIL,
+  privateKey: process.env.PRIVATE_KEY?.replace(/\\n/g, '\n'),
+};
+
+initializeApp({
+  credential: cert(serviceAccount),
+});
+
+const db = getFirestore();
+db.settings({ ignoreUndefinedProperties: true });
+
+const setDoc = async (field: any) => {
+  const data: FirebaseFirestore.DocumentData = {
+    field,
+  };
+
+  await db.collection('46pic').doc('group').set(data);
+};
 
 const main = async () => {
   const { year, month } = getToday();
@@ -31,7 +66,7 @@ const main = async () => {
 
   console.log('🚀 Start');
   const field = await scraping(scrapingInfo);
-  const obj: ObjType[] = [
+  const data: DataType[] = [
     {
       name: '乃木坂46',
       color: 'purple',
@@ -45,7 +80,43 @@ const main = async () => {
       member: field.h_member,
     },
   ];
-  fs.writeFileSync('./schedule.json', JSON.stringify(obj));
+
+  const convertData: ConvertDataType[] = data.map((item) => {
+    const member = item.member?.map((item) => ({
+      ...item,
+      name: convertHalfToFull(item.name),
+    }));
+
+    return {
+      name: item.name,
+      color: item.color,
+      schedule: item.schedule.map((_item) => ({
+        ..._item,
+        schedule: _item.schedule.map((__item) => {
+          const filterMember: MemberType[] = [];
+          member.forEach((___item) => {
+            __item.member?.forEach((____item) => {
+              if (___item.name === ____item.name) {
+                filterMember.push(___item);
+              }
+            });
+          });
+
+          return {
+            ...__item,
+            startTime: __item.startTime,
+            endTime: __item.endTime,
+            dateTime: __item.startTime ? `${_item.date}T${__item.startTime}+09:00` : undefined,
+            text: sliceBrackets(__item.text),
+            member: filterMember.length ? filterMember : undefined,
+          };
+        }),
+      })),
+    };
+  });
+
+  await setDoc(convertData);
+  fs.writeFileSync('./schedule.json', JSON.stringify(convertData));
   console.log('🎉 End');
 };
 

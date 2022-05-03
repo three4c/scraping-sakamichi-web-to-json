@@ -21,6 +21,8 @@
   },
   "homepage": "https://github.com/three4c/scraping-sakamichi-web-to-firebase#readme",
   "dependencies": {
+    "dotenv": "^16.0.0",
+    "firebase-admin": "^10.1.0",
     "fs": "^0.0.1-security",
     "puppeteer": "^13.4.1"
   },

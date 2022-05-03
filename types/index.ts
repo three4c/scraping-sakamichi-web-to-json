@@ -1,10 +1,12 @@
 import puppeteer from 'puppeteer';
 
-export interface ObjType {
+export type ConvertDataType = Omit<DataType, 'member'>;
+
+export interface DataType {
   name: '乃木坂46' | '日向坂46';
   color: 'purple' | 'blue';
-  schedule: DateType[] | MemberType[];
-  member: DateType[] | MemberType[];
+  schedule: DateType[];
+  member: MemberType[];
 }
 
 export interface ResultType {
@@ -16,16 +18,18 @@ export interface ResultType {
 
 export type ScrapingInfoType = ScrapingInfoScheduleType | ScrapingInfoMemberType;
 
-export interface ScrapingInfoScheduleType {
+interface ScrapingInfoScheduleType extends ScrapingInfoCommon {
   key: 'n_schedule' | 'h_schedule';
-  url: string;
   fn: (page: puppeteer.Page) => Promise<DateType[]>;
 }
 
-export interface ScrapingInfoMemberType {
+interface ScrapingInfoMemberType extends ScrapingInfoCommon {
   key: 'n_member' | 'h_member';
-  url: string;
   fn: (page: puppeteer.Page) => Promise<MemberType[]>;
+}
+
+interface ScrapingInfoCommon {
+  url: string;
 }
 
 export interface DateType {

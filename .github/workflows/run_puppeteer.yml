@@ -1,10 +1,12 @@
 name: Run puppeteer
 
 on:
-  schedule:
-    - cron: "0 15 * * *" #日本時間 0:00
-    - cron: "0 3 * * *" #日本時間 12:00
-    - cron: "0 9 * * *" #日本時間 18:00
+  push:
+    branches: [main]
+  # schedule:
+  #   - cron: "0 15 * * *" #日本時間 0:00
+  #   - cron: "0 3 * * *" #日本時間 12:00
+  #   - cron: "0 9 * * *" #日本時間 18:00
 
 jobs:
   build:
@@ -12,15 +14,18 @@ jobs:
     strategy:
       matrix:
         node-version: [14.x]
-    environment:
+    env:
       name: Config
+      PROJECT_ID: ${{ secrets.PROJECT_ID }}
+      CLIENT_EMAIL: ${{ secrets.CLIENT_EMAIL }}
+      PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
 
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js 14.x
         uses: actions/setup-node@v1
         with:
-          node-version: "14.x"
+          node-version: '14.x'
       - name: Install Yarn
         run: yarn install
 
