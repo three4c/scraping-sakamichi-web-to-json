@@ -1,4 +1,3 @@
-import fs from 'fs';
 import dotenv from 'dotenv';
 import { initializeApp, cert, ServiceAccount } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -116,7 +115,6 @@ const main = async () => {
   });
 
   await setDoc(convertData);
-  fs.writeFileSync('./schedule.json', JSON.stringify(convertData));
   console.log('🎉 End');
 };
 
