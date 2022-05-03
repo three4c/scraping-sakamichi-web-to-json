@@ -14,8 +14,9 @@ jobs:
     strategy:
       matrix:
         node-version: [14.x]
-    env:
+    environment:
       name: Config
+    env:
       PROJECT_ID: ${{ secrets.PROJECT_ID }}
       CLIENT_EMAIL: ${{ secrets.CLIENT_EMAIL }}
       PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
