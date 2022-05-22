@@ -45,8 +45,8 @@ export interface ScheduleFilterType extends ScheduleType {
 
 export interface ScheduleType {
   href: string;
-  category: string;
   text: string;
+  category?: string;
   startTime?: string;
   endTime?: string;
   member?: Pick<MemberType, 'name'>[];

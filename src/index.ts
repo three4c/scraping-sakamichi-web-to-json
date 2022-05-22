@@ -339,7 +339,7 @@ const s_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> =>
           return {
             date: getDate(item.querySelector('.date')?.textContent || '')?.replace(/\./g, '-') || '',
             href: 'https://sakurazaka46.com/s/s46/media/list',
-            category: item.querySelector('.type')?.textContent || '',
+            category: item.querySelector('.type')?.textContent || undefined,
             startTime: time ? time[0] : undefined,
             endTime: time ? time[1] : undefined,
             text: item.querySelector('.title')?.textContent || '',
