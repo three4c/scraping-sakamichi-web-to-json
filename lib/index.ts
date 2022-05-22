@@ -1,3 +1,5 @@
+import { DateType, ScheduleType, ScheduleFilterType } from 'types';
+
 export const getToday = () => {
   const today = new Date(Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000);
   const year = today.getFullYear();
@@ -20,6 +22,35 @@ export const convertTime = (time: string) => {
 
 export const sliceBrackets = (text: string) =>
   text.slice(0, 1) === '「' && text.slice(-1) === '」' ? text.slice(1, text.length - 1) : text;
+
+export const convertOver24Time = (date: DateType[]) => {
+  for (let i = 0; i < date.length; i++) {
+    const overTimeSchedule = date[i].schedule
+      .filter((item: ScheduleType): item is ScheduleFilterType =>
+        Boolean(item.startTime && Number(item.startTime.split(':')[0]) >= 24)
+      )
+      .map((item) => {
+        const startTime = item.startTime?.split(':');
+        const endTime = item.endTime?.split(':');
+
+        return {
+          ...item,
+          startTime: `0${Number(startTime[0]) - 24}:${startTime[1]}`.slice(-5),
+          endTime: endTime ? `0${Number(endTime[0]) - 24}:${endTime[1]}`.slice(-5) : undefined,
+        };
+      });
+
+    for (let j = 0; j < overTimeSchedule.length; j++) {
+      date[i].schedule = date[i].schedule.filter((item) => item.text !== overTimeSchedule[j].text);
+    }
+
+    if (i + 1 < date.length) {
+      date[i + 1].schedule = [...date[i + 1].schedule, ...overTimeSchedule];
+    }
+  }
+
+  return date;
+};
 
 export const convertHalfToFull = (value: string) => {
   const textMap: { [key: string]: string } = {

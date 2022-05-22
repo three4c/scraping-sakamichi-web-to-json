@@ -1,0 +1,93 @@
+[
+  { "name": "乃木坂46", "color": "purple", "schedule": [] },
+  { "name": "日向坂46", "color": "blue", "schedule": [] },
+  {
+    "name": "櫻坂46",
+    "color": "pink",
+    "schedule": [
+      {
+        "date": "2022-05-21",
+        "schedule": [
+          {
+            "href": "https://sakurazaka46.com/s/s46/media/list",
+            "category": "",
+            "startTime": "17:00",
+            "text": "櫻坂46「渡邉理佐 卒業コンサート」",
+            "dateTime": "2022-05-21T17:00+09:00"
+          }
+        ]
+      },
+      {
+        "date": "2022-05-22",
+        "schedule": [
+          {
+            "href": "https://sakurazaka46.com/s/s46/media/list",
+            "category": "",
+            "startTime": "17:00",
+            "text": "櫻坂46「渡邉理佐 卒業コンサート」",
+            "dateTime": "2022-05-22T17:00+09:00"
+          },
+          {
+            "href": "https://sakurazaka46.com/s/s46/media/list",
+            "category": "テレビ",
+            "startTime": "21:55",
+            "text": "テレビ朝日「くりぃむナンタラ」",
+            "member": [
+              {
+                "href": "https://sakurazaka46.com/s/s46/artist/46?ima=1451",
+                "name": "田村保乃",
+                "hiragana": "たむらほの",
+                "src": "https://sakurazaka46.com/images/14/2a9/3831117fa9e0c5dc1ebbed2dcc086/400_320_102400.jpg"
+              }
+            ],
+            "dateTime": "2022-05-22T21:55+09:00"
+          },
+          {
+            "href": "https://sakurazaka46.com/s/s46/media/list",
+            "category": "ラジオ",
+            "startTime": "23:00",
+            "endTime": "23:30",
+            "text": "ニッポン放送「櫻坂46 こちら有楽町星空放送局」",
+            "member": [
+              {
+                "href": "https://sakurazaka46.com/s/s46/artist/04?ima=1451",
+                "name": "尾関梨香",
+                "hiragana": "おぜきりか",
+                "src": "https://sakurazaka46.com/images/14/8c3/4cbfd16415a89ebf6ec9316212d93/400_320_102400.jpg"
+              }
+            ],
+            "dateTime": "2022-05-22T23:00+09:00"
+          }
+        ]
+      },
+      {
+        "date": "2022-05-23",
+        "schedule": [
+          {
+            "href": "https://sakurazaka46.com/s/s46/media/list",
+            "category": "ラジオ",
+            "startTime": "23:45",
+            "text": "文化放送「レコメン!」",
+            "member": [
+              {
+                "href": "https://sakurazaka46.com/s/s46/artist/48?ima=1451",
+                "name": "松田里奈",
+                "hiragana": "まつだりな",
+                "src": "https://sakurazaka46.com/images/14/150/16076ef4c389639b7a6c54af89214/400_320_102400.jpg"
+              }
+            ],
+            "dateTime": "2022-05-23T23:45+09:00"
+          },
+          {
+            "href": "https://sakurazaka46.com/s/s46/media/list",
+            "category": "テレビ",
+            "startTime": "00:35",
+            "endTime": "01:05",
+            "text": "テレビ東京「そこ曲がったら、櫻坂？」",
+            "dateTime": "2022-05-23T00:35+09:00"
+          }
+        ]
+      }
+    ]
+  }
+]

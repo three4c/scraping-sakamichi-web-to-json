@@ -1,18 +1,9 @@
 import dotenv from 'dotenv';
 import { initializeApp, cert, ServiceAccount } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { getToday, convertText, convertTime, sliceBrackets, convertHalfToFull } from 'lib';
+import { getToday, convertText, convertTime, sliceBrackets, convertOver24Time, convertHalfToFull } from 'lib';
 import puppeteer from 'puppeteer';
-import {
-  ScrapingInfoType,
-  DateType,
-  MemberType,
-  DataType,
-  ScheduleType,
-  ScheduleFilterType,
-  ResultType,
-  ConvertDataType,
-} from 'types';
+import { ScrapingInfoType, DateType, MemberType, DataType, ScheduleType, ResultType, ConvertDataType } from 'types';
 
 dotenv.config();
 
@@ -61,6 +52,16 @@ const main = async () => {
       url: 'https://www.hinatazaka46.com/s/official/search/artist',
       fn: h_getMember,
     },
+    {
+      key: 's_schedule',
+      url: `https://sakurazaka46.com/s/s46/media/list?dy=${dyParameter}`,
+      fn: s_getSchedule,
+    },
+    {
+      key: 's_member',
+      url: 'https://sakurazaka46.com/s/s46/search/artist',
+      fn: s_getMember,
+    },
   ];
 
   console.log('🚀 Start');
@@ -77,6 +78,12 @@ const main = async () => {
       color: 'blue',
       schedule: field.h_schedule,
       member: field.h_member,
+    },
+    {
+      name: '櫻坂46',
+      color: 'pink',
+      schedule: field.s_schedule,
+      member: field.s_member,
     },
   ];
 
@@ -130,22 +137,25 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
     n_member: [],
     h_schedule: [],
     h_member: [],
+    s_schedule: [],
+    s_member: [],
   };
 
   await page.exposeFunction('getToday', getToday);
   await page.exposeFunction('convertText', convertText);
   await page.exposeFunction('convertTime', convertTime);
+  await page.exposeFunction('convertOver24Time', convertOver24Time);
   await page.setViewport({ width: 320, height: 640 });
 
   for (const item of scrapingInfo) {
     await page.goto(item.url);
     await page.waitForTimeout(1000);
 
-    if (item.key === 'n_schedule' || item.key === 'h_schedule') {
+    if (item.key === 'n_schedule' || item.key === 'h_schedule' || item.key === 's_schedule') {
       result[item.key] = await item.fn(page);
     }
 
-    if (item.key === 'n_member' || item.key === 'h_member') {
+    if (item.key === 'n_member' || item.key === 'h_member' || item.key === 's_member') {
       result[item.key] = await item.fn(page);
     }
   }
@@ -217,32 +227,7 @@ const n_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
     }),
   }));
 
-  for (let i = 0; i < date.length; i++) {
-    const overTimeSchedule = date[i].schedule
-      .filter((item: ScheduleType): item is ScheduleFilterType =>
-        Boolean(item.startTime && Number(item.startTime.split(':')[0]) >= 24)
-      )
-      .map((item) => {
-        const startTime = item.startTime?.split(':');
-        const endTime = item.endTime?.split(':');
-
-        return {
-          ...item,
-          startTime: `0${Number(startTime[0]) - 24}:${startTime[1]}`.slice(-5),
-          endTime: endTime ? `0${Number(endTime[0]) - 24}:${endTime[1]}`.slice(-5) : undefined,
-        };
-      });
-
-    for (let j = 0; j < overTimeSchedule.length; j++) {
-      date[i].schedule = date[i].schedule.filter((item) => item.text !== overTimeSchedule[j].text);
-    }
-
-    if (i + 1 < date.length) {
-      date[i + 1].schedule = [...date[i + 1].schedule, ...overTimeSchedule];
-    }
-  }
-
-  return date;
+  return convertOver24Time(date);
 };
 
 /** n_getScheduleで言語を切り替えているため、こちらではそのままスクレイピングを行う */
@@ -314,32 +299,7 @@ const h_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
     }
   }
 
-  for (let i = 0; i < date.length; i++) {
-    const overTimeSchedule = date[i].schedule
-      .filter((item: ScheduleType): item is ScheduleFilterType =>
-        Boolean(item.startTime && Number(item.startTime.split(':')[0]) >= 24)
-      )
-      .map((item) => {
-        const startTime = item.startTime?.split(':');
-        const endTime = item.endTime?.split(':');
-
-        return {
-          ...item,
-          startTime: `0${Number(startTime[0]) - 24}:${startTime[1]}`.slice(-5),
-          endTime: endTime ? `0${Number(endTime[0]) - 24}:${endTime[1]}`.slice(-5) : undefined,
-        };
-      });
-
-    for (let j = 0; j < overTimeSchedule.length; j++) {
-      date[i].schedule = date[i].schedule.filter((item) => item.text !== overTimeSchedule[j].text);
-    }
-
-    if (i + 1 < date.length) {
-      date[i + 1].schedule = [...date[i + 1].schedule, ...overTimeSchedule];
-    }
-  }
-
-  return date;
+  return convertOver24Time(date);
 };
 
 const h_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
@@ -355,6 +315,84 @@ const h_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
             name: await window.convertText(item.querySelector('.c-member__name')?.textContent || ''),
             hiragana: await window.convertText(item.querySelector('.c-member__kana')?.textContent || ''),
             src: item.querySelector('img')?.getAttribute('src') || '',
+          };
+        })
+    )
+  );
+
+const s_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> =>
+  await page.$$eval('.module-modal', async (element) => {
+    const { day } = await window.getToday();
+    const getDate = (text: string) => {
+      const matchText = text.match(/[0-9]{4}.[0-9]{2}.[0-9]{2}/g);
+      return matchText ? matchText[0] : undefined;
+    };
+
+    const date = await Promise.all(
+      element
+        .filter(
+          (item) => Math.abs(Number(getDate(item.querySelector('.date')?.textContent || '')?.slice(-2)) - day) < 2
+        )
+        .map(async (item) => {
+          const time = await window.convertTime(item.querySelector('.date')?.textContent || '');
+
+          return {
+            date: getDate(item.querySelector('.date')?.textContent || '')?.replace(/\./g, '-') || '',
+            href: 'https://sakurazaka46.com/s/s46/media/list',
+            category: item.querySelector('.type')?.textContent || '',
+            startTime: time ? time[0] : undefined,
+            endTime: time ? time[1] : undefined,
+            text: item.querySelector('.title')?.textContent || '',
+            member: await Promise.all(
+              Array.from(item.querySelectorAll('.members a')).map(async (elementItem) => ({
+                name: await window.convertText(elementItem.textContent || ''),
+              }))
+            ),
+          };
+        })
+    );
+
+    const categories = date
+      .filter((item) => item.date)
+      .reduce(
+        (acc, cur) => {
+          if (!acc[cur.date]) {
+            acc[cur.date] = [];
+          }
+
+          acc[cur.date] = [...acc[cur.date], cur];
+          return acc;
+        },
+        {} as {
+          [key: string]: (ScheduleType & { date?: string })[];
+        }
+      );
+
+    const convertCategories = Object.entries(categories).map(([categoryName, prop]) => ({
+      date: categoryName,
+      schedule: prop.map((item) => {
+        delete item.date;
+        return item;
+      }),
+    }));
+
+    return await window.convertOver24Time(convertCategories);
+  });
+
+const s_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
+  page.$$eval('.box', (element) =>
+    Promise.all(
+      element
+        .filter((item) => item.querySelector('.name')?.textContent)
+        .map(async (item) => {
+          const href = item.querySelector('a')?.getAttribute('href');
+          const src = item.querySelector('img')?.getAttribute('src');
+
+          return {
+            href: href ? `https://sakurazaka46.com${href}` : '',
+            name: await window.convertText(item.querySelector('.name')?.textContent || ''),
+            hiragana: await window.convertText(item.querySelector('.kana')?.textContent || ''),
+            src: src ? `https://sakurazaka46.com${src}` : '',
           };
         })
     )
