@@ -121,7 +121,12 @@ const main = async () => {
     };
   });
 
-  await setDoc(convertData);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(JSON.stringify(convertData, null, 2));
+  } else {
+    await setDoc(convertData);
+  }
+
   console.log('🎉 End');
 };
 
@@ -179,7 +184,7 @@ const n_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
         .filter((item) => Math.abs(Number(item.querySelector('.sc--day__hd')?.getAttribute('id')) - day) < 2)
         .map(async (item) => {
           const id = item.querySelector('.sc--day__hd')?.getAttribute('id') || undefined;
-          const date = id ? `${year}-${month}-${`0${id}`.slice(-2)}` : '';
+          const date = id ? `${year}-${`0${month}`.slice(-2)}-${`0${id}`.slice(-2)}` : '';
           const schedule = await Promise.all(
             Array.from(item.querySelectorAll('.m--scone')).map(async (elementItem) => {
               const time = await window.convertTime(elementItem.querySelector('.m--scone__start')?.textContent || '');
@@ -255,7 +260,7 @@ const h_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
         .filter((item) => Math.abs(Number(item.querySelector('.c-schedule__date--list span')?.textContent) - day) < 2)
         .map(async (item) => {
           const id = item.querySelector('.c-schedule__date--list span')?.textContent || undefined;
-          const date = id ? `${year}-${month}-${`0${id}`.slice(-2)}` : '';
+          const date = id ? `${year}-${`0${month}`.slice(-2)}-${`0${id}`.slice(-2)}` : '';
           const schedule = await Promise.all(
             Array.from(item.querySelectorAll('.p-schedule__item a')).map(async (elementItem) => {
               const href = elementItem.getAttribute('href');

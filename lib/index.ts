@@ -3,13 +3,23 @@ import { DateType, ScheduleType, ScheduleFilterType } from 'types';
 export const getToday = () => {
   const today = new Date(Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000);
   const year = today.getFullYear();
-  const month = `0${today.getMonth() + 1}`.slice(-2);
-  const day = `0${today.getDate()}`.slice(-2);
+  const month = today.getMonth() + 1;
+  const day = today.getDate();
 
   return {
     year,
     month,
     day,
+  };
+};
+
+export const getEndDate = (year: number, month: number) => {
+  const lastDay = new Date(year, month, 0).getDate();
+  const LAST_MONTH = 12;
+
+  return {
+    lastMonth: LAST_MONTH,
+    lastDay,
   };
 };
 

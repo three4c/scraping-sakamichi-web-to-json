@@ -66,6 +66,13 @@ declare global {
       month: number;
       day: number;
     }>;
+    getEndDate: (
+      year: number,
+      month: number
+    ) => Promise<{
+      lastMonth: number;
+      lastDay: number;
+    }>;
     convertText: (text: string) => Promise<string>;
     convertTime: (time: string) => Promise<string[] | undefined>;
     convertOver24Time: (date: DateType[]) => Promise<DateType[]>;
