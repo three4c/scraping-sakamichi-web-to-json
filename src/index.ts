@@ -1,11 +1,30 @@
 import dotenv from 'dotenv';
 import { initializeApp, cert, ServiceAccount } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { getToday, convertText, convertTime, sliceBrackets, convertOver24Time, convertHalfToFull } from 'lib';
-import puppeteer from 'puppeteer';
-import { ScrapingInfoType, DateType, MemberType, DataType, ScheduleType, ResultType, ConvertDataType } from 'types';
+import {
+  getToday,
+  convertText,
+  convertTime,
+  sliceBrackets,
+  convertOver24Time,
+  convertHalfToFull,
+  getFirstOrEndDay,
+} from 'lib';
+import puppeteer, { SerializableOrJSHandle } from 'puppeteer';
+import {
+  ScrapingInfoType,
+  DateType,
+  MemberType,
+  DataType,
+  ScheduleType,
+  ResultType,
+  ConvertDataType,
+  ArgsType,
+} from 'types';
 
 dotenv.config();
+
+const isProd = process.env.NODE_ENV !== 'development';
 
 const serviceAccount: ServiceAccount = {
   projectId: process.env.PROJECT_ID,
@@ -28,9 +47,16 @@ const setDoc = async (field: any) => {
   await db.collection('46pic').doc('group').set(data);
 };
 
+const { year, month, day } = isProd
+  ? getToday()
+  : {
+      year: 2022,
+      month: 5,
+      day: 31,
+    };
+
 const main = async () => {
-  const { year, month } = getToday();
-  const dyParameter = `${year}${month}`;
+  const dyParameter = `${year}${`0${month}`.slice(-2)}`;
   const scrapingInfo: ScrapingInfoType[] = [
     {
       key: 'n_schedule',
@@ -121,10 +147,10 @@ const main = async () => {
     };
   });
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log(JSON.stringify(convertData, null, 2));
-  } else {
+  if (isProd) {
     await setDoc(convertData);
+  } else {
+    console.log(JSON.stringify(convertData, null, 2));
   }
 
   console.log('🎉 End');
@@ -146,7 +172,10 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
     s_member: [],
   };
 
-  await page.exposeFunction('getToday', getToday);
+  // page.on('console', (msg) => {
+  //   for (let i = 0; i < msg.args().length; ++i) console.log(`${i}: ${msg.args()[i]}`);
+  // });
+
   await page.exposeFunction('convertText', convertText);
   await page.exposeFunction('convertTime', convertTime);
   await page.exposeFunction('convertOver24Time', convertOver24Time);
@@ -176,36 +205,81 @@ const n_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
   await page.click('.b--lng__one.js-lang-swich.hv--op.ja');
   await page.waitForTimeout(1000);
 
-  let date: DateType[] = await page.$$eval('.sc--lists .sc--day', async (element) => {
-    const { year, month, day } = await window.getToday();
+  const getDate = async (args: ArgsType) =>
+    await page.$$eval(
+      '.sc--lists .sc--day',
+      async (element, args) => {
+        const isArgsType = (arg: any): arg is ArgsType => arg;
 
-    return Promise.all(
-      element
-        .filter((item) => Math.abs(Number(item.querySelector('.sc--day__hd')?.getAttribute('id')) - day) < 2)
-        .map(async (item) => {
-          const id = item.querySelector('.sc--day__hd')?.getAttribute('id') || undefined;
-          const date = id ? `${year}-${`0${month}`.slice(-2)}-${`0${id}`.slice(-2)}` : '';
-          const schedule = await Promise.all(
-            Array.from(item.querySelectorAll('.m--scone')).map(async (elementItem) => {
-              const time = await window.convertTime(elementItem.querySelector('.m--scone__start')?.textContent || '');
+        if (isArgsType(args)) {
+          const { year, month, day, type, peak } = args;
 
-              return {
-                href: elementItem.querySelector('.m--scone__a')?.getAttribute('href') || '',
-                category: elementItem.querySelector('.m--scone__cat__name')?.textContent || '',
-                startTime: time ? time[0] : undefined,
-                endTime: time ? time[1] : undefined,
-                text: elementItem.querySelector('.m--scone__ttl')?.textContent || '',
-              };
-            })
+          return Promise.all(
+            element
+              .filter((item) => {
+                const diff = Number(item.querySelector('.sc--day__hd')?.getAttribute('id')) - day;
+
+                if ((type === 'first' || type === 'last') && peak !== undefined) {
+                  return Math.abs(diff) <= peak;
+                } else {
+                  return -1 <= diff && diff <= 2;
+                }
+              })
+              .map(async (item) => {
+                const id = item.querySelector('.sc--day__hd')?.getAttribute('id') || undefined;
+                const date = id ? `${year}-${`0${month}`.slice(-2)}-${`0${id}`.slice(-2)}` : '';
+                const schedule = await Promise.all(
+                  Array.from(item.querySelectorAll('.m--scone')).map(async (elementItem) => {
+                    const time = await window.convertTime(
+                      elementItem.querySelector('.m--scone__start')?.textContent || ''
+                    );
+
+                    return {
+                      href: elementItem.querySelector('.m--scone__a')?.getAttribute('href') || '',
+                      category: elementItem.querySelector('.m--scone__cat__name')?.textContent || '',
+                      startTime: time ? time[0] : undefined,
+                      endTime: time ? time[1] : undefined,
+                      text: elementItem.querySelector('.m--scone__ttl')?.textContent || '',
+                    };
+                  })
+                );
+
+                return {
+                  date,
+                  schedule,
+                };
+              })
           );
-
-          return {
-            date,
-            schedule,
-          };
-        })
+        } else {
+          return [];
+        }
+      },
+      args as unknown as SerializableOrJSHandle
     );
+
+  let date: DateType[] = await getDate({
+    year,
+    month,
+    day,
   });
+
+  const firstOrEndDay = getFirstOrEndDay(year, month, day);
+
+  if (firstOrEndDay.type) {
+    const dyParameter = `${firstOrEndDay.year}${`0${firstOrEndDay.month}`.slice(-2)}`;
+    await page.goto(`https://www.nogizaka46.com/s/n46/media/list?dy=${dyParameter}`);
+
+    const type = firstOrEndDay.type === 'firstDay' || firstOrEndDay.type === 'firstMonth' ? 'first' : 'last';
+    const addDate = await getDate({
+      year: firstOrEndDay.year,
+      month: firstOrEndDay.month,
+      day: firstOrEndDay.day,
+      type,
+      peak: type === 'first' ? 0 : 1 - (new Date(year, month, 0).getDate() - day),
+    });
+
+    date = type == 'first' ? [...addDate, ...date] : [...date, ...addDate];
+  }
 
   date = date.map((item) => ({
     ...item,
@@ -252,41 +326,84 @@ const n_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
 
 /** 日向坂 */
 const h_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
-  const date: DateType[] = await page.$$eval('.p-schedule__list-group', async (element) => {
-    const { year, month, day } = await window.getToday();
+  const getDate = async (args: ArgsType) =>
+    await page.$$eval(
+      '.p-schedule__list-group',
+      async (element, args) => {
+        const isArgsType = (arg: any): arg is ArgsType => arg;
 
-    return Promise.all(
-      element
-        .filter((item) => Math.abs(Number(item.querySelector('.c-schedule__date--list span')?.textContent) - day) < 2)
-        .map(async (item) => {
-          const id = item.querySelector('.c-schedule__date--list span')?.textContent || undefined;
-          const date = id ? `${year}-${`0${month}`.slice(-2)}-${`0${id}`.slice(-2)}` : '';
-          const schedule = await Promise.all(
-            Array.from(item.querySelectorAll('.p-schedule__item a')).map(async (elementItem) => {
-              const href = elementItem.getAttribute('href');
-              const time = await window.convertTime(
-                await window.convertText(elementItem.querySelector('.c-schedule__time--list')?.textContent || '')
-              );
+        if (isArgsType(args)) {
+          const { year, month, day, type, peak } = args;
 
-              return {
-                href: href ? `https://www.hinatazaka46.com${href}` : '',
-                category: await window.convertText(
-                  elementItem.querySelector('.c-schedule__category')?.textContent || ''
-                ),
-                startTime: time ? time[0] : undefined,
-                endTime: time ? time[1] : undefined,
-                text: await window.convertText(elementItem.querySelector('.c-schedule__text')?.textContent || ''),
-              };
-            })
+          return Promise.all(
+            element
+              .filter((item) => {
+                const diff = Number(item.querySelector('.c-schedule__date--list span')?.textContent) - day;
+
+                if ((type === 'first' || type === 'last') && peak !== undefined) {
+                  return Math.abs(diff) <= peak;
+                } else {
+                  return -1 <= diff && diff <= 2;
+                }
+              })
+              .map(async (item) => {
+                const id = item.querySelector('.c-schedule__date--list span')?.textContent || undefined;
+                const date = id ? `${year}-${`0${month}`.slice(-2)}-${`0${id}`.slice(-2)}` : '';
+                const schedule = await Promise.all(
+                  Array.from(item.querySelectorAll('.p-schedule__item a')).map(async (elementItem) => {
+                    const href = elementItem.getAttribute('href');
+                    const time = await window.convertTime(
+                      await window.convertText(elementItem.querySelector('.c-schedule__time--list')?.textContent || '')
+                    );
+
+                    return {
+                      href: href ? `https://www.hinatazaka46.com${href}` : '',
+                      category: await window.convertText(
+                        elementItem.querySelector('.c-schedule__category')?.textContent || ''
+                      ),
+                      startTime: time ? time[0] : undefined,
+                      endTime: time ? time[1] : undefined,
+                      text: await window.convertText(elementItem.querySelector('.c-schedule__text')?.textContent || ''),
+                    };
+                  })
+                );
+
+                return {
+                  date,
+                  schedule,
+                };
+              })
           );
-
-          return {
-            date,
-            schedule,
-          };
-        })
+        } else {
+          return [];
+        }
+      },
+      args as unknown as SerializableOrJSHandle
     );
+
+  let date: DateType[] = await getDate({
+    year,
+    month,
+    day,
   });
+
+  const firstOrEndDay = getFirstOrEndDay(year, month, day);
+
+  if (firstOrEndDay.type) {
+    const dyParameter = `${firstOrEndDay.year}${`0${firstOrEndDay.month}`.slice(-2)}`;
+    await page.goto(`https://www.hinatazaka46.com/s/official/media/list?dy=${dyParameter}`);
+
+    const type = firstOrEndDay.type === 'firstDay' || firstOrEndDay.type === 'firstMonth' ? 'first' : 'last';
+    const addDate = await getDate({
+      year: firstOrEndDay.year,
+      month: firstOrEndDay.month,
+      day: firstOrEndDay.day,
+      type,
+      peak: type === 'first' ? 0 : 1 - (new Date(year, month, 0).getDate() - day),
+    });
+
+    date = type == 'first' ? [...addDate, ...date] : [...date, ...addDate];
+  }
 
   for (let i = 0; i < date.length; i++) {
     for (let j = 0; j < date[i].schedule.length; j++) {
@@ -325,64 +442,109 @@ const h_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
     )
   );
 
-const s_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> =>
-  await page.$$eval('.module-modal', async (element) => {
-    const { day } = await window.getToday();
-    const getDate = (text: string) => {
-      const matchText = text.match(/[0-9]{4}.[0-9]{2}.[0-9]{2}/g);
-      return matchText ? matchText[0] : undefined;
-    };
+const s_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
+  const getDate = async (args: ArgsType) =>
+    await page.$$eval(
+      '.module-modal',
+      async (element, args) => {
+        const isArgsType = (arg: any): arg is ArgsType => arg;
 
-    const date = await Promise.all(
-      element
-        .filter(
-          (item) => Math.abs(Number(getDate(item.querySelector('.date')?.textContent || '')?.slice(-2)) - day) < 2
-        )
-        .map(async (item) => {
-          const time = await window.convertTime(item.querySelector('.date')?.textContent || '');
+        const getDateText = (text: string) => {
+          const matchText = text.match(/[0-9]{4}.[0-9]{2}.[0-9]{2}/g);
+          return matchText ? matchText[0] : undefined;
+        };
 
-          return {
-            date: getDate(item.querySelector('.date')?.textContent || '')?.replace(/\./g, '-') || '',
-            href: 'https://sakurazaka46.com/s/s46/media/list',
-            category: item.querySelector('.type')?.textContent || undefined,
-            startTime: time ? time[0] : undefined,
-            endTime: time ? time[1] : undefined,
-            text: item.querySelector('.title')?.textContent || '',
-            member: await Promise.all(
-              Array.from(item.querySelectorAll('.members a')).map(async (elementItem) => ({
-                name: await window.convertText(elementItem.textContent || ''),
-              }))
-            ),
-          };
-        })
+        if (isArgsType(args)) {
+          const { day, type, peak } = args;
+
+          const date = await Promise.all(
+            element
+              .filter((item) => {
+                const diff = Number(getDateText(item.querySelector('.date')?.textContent || '')?.slice(-2)) - day;
+
+                if ((type === 'first' || type === 'last') && peak !== undefined) {
+                  return Math.abs(diff) <= peak;
+                } else {
+                  return -1 <= diff && diff <= 2;
+                }
+              })
+              .map(async (item) => {
+                const time = await window.convertTime(item.querySelector('.date')?.textContent || '');
+
+                return {
+                  date: getDateText(item.querySelector('.date')?.textContent || '')?.replace(/\./g, '-') || '',
+                  href: 'https://sakurazaka46.com/s/s46/media/list',
+                  category: item.querySelector('.type')?.textContent || undefined,
+                  startTime: time ? time[0] : undefined,
+                  endTime: time ? time[1] : undefined,
+                  text: item.querySelector('.title')?.textContent || '',
+                  member: await Promise.all(
+                    Array.from(item.querySelectorAll('.members a')).map(async (elementItem) => ({
+                      name: await window.convertText(elementItem.textContent || ''),
+                    }))
+                  ),
+                };
+              })
+          );
+
+          const categories = date
+            .filter((item) => item.date)
+            .reduce(
+              (acc, cur) => {
+                if (!acc[cur.date]) {
+                  acc[cur.date] = [];
+                }
+
+                acc[cur.date] = [...acc[cur.date], cur];
+                return acc;
+              },
+              {} as {
+                [key: string]: (ScheduleType & { date?: string })[];
+              }
+            );
+
+          const convertCategories = Object.entries(categories).map(([categoryName, prop]) => ({
+            date: categoryName,
+            schedule: prop.map((item) => {
+              delete item.date;
+              return item;
+            }),
+          }));
+
+          return await window.convertOver24Time(convertCategories);
+        } else {
+          return [];
+        }
+      },
+      args as unknown as SerializableOrJSHandle
     );
 
-    const categories = date
-      .filter((item) => item.date)
-      .reduce(
-        (acc, cur) => {
-          if (!acc[cur.date]) {
-            acc[cur.date] = [];
-          }
-
-          acc[cur.date] = [...acc[cur.date], cur];
-          return acc;
-        },
-        {} as {
-          [key: string]: (ScheduleType & { date?: string })[];
-        }
-      );
-
-    const convertCategories = Object.entries(categories).map(([categoryName, prop]) => ({
-      date: categoryName,
-      schedule: prop.map((item) => {
-        delete item.date;
-        return item;
-      }),
-    }));
-
-    return await window.convertOver24Time(convertCategories);
+  let date: DateType[] = await getDate({
+    year,
+    month,
+    day,
   });
+
+  const firstOrEndDay = getFirstOrEndDay(year, month, day);
+
+  if (firstOrEndDay.type) {
+    const dyParameter = `${firstOrEndDay.year}${`0${firstOrEndDay.month}`.slice(-2)}`;
+    await page.goto(`https://sakurazaka46.com/s/s46/media/list?dy=${dyParameter}`);
+
+    const type = firstOrEndDay.type === 'firstDay' || firstOrEndDay.type === 'firstMonth' ? 'first' : 'last';
+    const addDate = await getDate({
+      year: firstOrEndDay.year,
+      month: firstOrEndDay.month,
+      day: firstOrEndDay.day,
+      type,
+      peak: type === 'first' ? 0 : 1 - (new Date(year, month, 0).getDate() - day),
+    });
+
+    date = type == 'first' ? [...addDate, ...date] : [...date, ...addDate];
+  }
+
+  return date;
+};
 
 const s_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
   page.$$eval('.box', (element) =>

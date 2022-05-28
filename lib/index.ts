@@ -1,4 +1,6 @@
-import { DateType, ScheduleType, ScheduleFilterType } from 'types';
+import { DateType, ScheduleType, ScheduleFilterType, ArgsType } from 'types';
+
+export const isArgsType = (arg: any): arg is ArgsType => arg;
 
 export const getToday = () => {
   const today = new Date(Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000);
@@ -13,13 +15,67 @@ export const getToday = () => {
   };
 };
 
-export const getEndDate = (year: number, month: number) => {
-  const lastDay = new Date(year, month, 0).getDate();
+export const getFirstOrEndDay = (
+  year: number,
+  month: number,
+  day: number
+): {
+  type?: 'firstMonth' | 'firstDay' | 'lastMonth' | 'lastDay';
+  year: number;
+  month: number;
+  day: number;
+} => {
+  const FIRST_DAY = 1;
+  const FIRST_MONTH = 1;
+  const LAST_DAY = new Date(year, month, 0).getDate();
   const LAST_MONTH = 12;
+  const PEAK = 1;
+
+  /** 月初 */
+  if (FIRST_DAY === day) {
+    /** 年初 */
+    if (FIRST_MONTH === month) {
+      return {
+        type: 'firstMonth',
+        year: year - 1,
+        month: LAST_MONTH,
+        day: new Date(year - 1, LAST_MONTH, 0).getDate(),
+      };
+    }
+
+    return {
+      type: 'firstDay',
+      year,
+      month: month - 1,
+      day: new Date(year, month - 1, 0).getDate(),
+    };
+  }
+
+  /** 月末 */
+  if (Math.abs(LAST_DAY - day) <= PEAK) {
+    /** 年末 */
+    if (LAST_MONTH === month) {
+      return {
+        type: 'lastMonth',
+        year: year + 1,
+        month: FIRST_MONTH,
+        day: FIRST_DAY,
+      };
+    }
+
+    return {
+      type: 'lastDay',
+      year,
+      month: month + 1,
+      day: FIRST_DAY,
+    };
+  }
 
   return {
-    lastMonth: LAST_MONTH,
-    lastDay,
+    type: undefined,
+    year,
+    month,
+    day,
   };
 };
 

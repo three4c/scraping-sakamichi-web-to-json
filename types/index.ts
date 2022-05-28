@@ -59,20 +59,16 @@ export interface MemberType {
   src: string;
 }
 
+export interface ArgsType {
+  year: number;
+  month: number;
+  day: number;
+  type?: 'first' | 'last';
+  peak?: number;
+}
+
 declare global {
   interface Window {
-    getToday: () => Promise<{
-      year: number;
-      month: number;
-      day: number;
-    }>;
-    getEndDate: (
-      year: number,
-      month: number
-    ) => Promise<{
-      lastMonth: number;
-      lastDay: number;
-    }>;
     convertText: (text: string) => Promise<string>;
     convertTime: (time: string) => Promise<string[] | undefined>;
     convertOver24Time: (date: DateType[]) => Promise<DateType[]>;
