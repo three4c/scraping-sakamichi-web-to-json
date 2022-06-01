@@ -58,26 +58,26 @@ const { year, month, day } = isProd
 const main = async () => {
   const dyParameter = `${year}${`0${month}`.slice(-2)}`;
   const scrapingInfo: ScrapingInfoType[] = [
-    // {
-    //   key: 'n_schedule',
-    //   url: `https://www.nogizaka46.com/s/n46/media/list?dy=${dyParameter}`,
-    //   fn: n_getSchedule,
-    // },
-    // {
-    //   key: 'n_member',
-    //   url: 'https://www.nogizaka46.com/s/n46/search/artist',
-    //   fn: n_getMember,
-    // },
-    // {
-    //   key: 'h_schedule',
-    //   url: `https://www.hinatazaka46.com/s/official/media/list?dy=${dyParameter}`,
-    //   fn: h_getSchedule,
-    // },
-    // {
-    //   key: 'h_member',
-    //   url: 'https://www.hinatazaka46.com/s/official/search/artist',
-    //   fn: h_getMember,
-    // },
+    {
+      key: 'n_schedule',
+      url: `https://www.nogizaka46.com/s/n46/media/list?dy=${dyParameter}`,
+      fn: n_getSchedule,
+    },
+    {
+      key: 'n_member',
+      url: 'https://www.nogizaka46.com/s/n46/search/artist',
+      fn: n_getMember,
+    },
+    {
+      key: 'h_schedule',
+      url: `https://www.hinatazaka46.com/s/official/media/list?dy=${dyParameter}`,
+      fn: h_getSchedule,
+    },
+    {
+      key: 'h_member',
+      url: 'https://www.hinatazaka46.com/s/official/search/artist',
+      fn: h_getMember,
+    },
     {
       key: 's_schedule',
       url: `https://sakurazaka46.com/s/s46/media/list?dy=${dyParameter}`,
@@ -147,7 +147,7 @@ const main = async () => {
     };
   });
 
-  if (isProd) {
+  if (!isProd) {
     await setDoc(convertData);
   } else {
     console.log(JSON.stringify(convertData, null, 2));
