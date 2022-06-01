@@ -58,26 +58,26 @@ const { year, month, day } = isProd
 const main = async () => {
   const dyParameter = `${year}${`0${month}`.slice(-2)}`;
   const scrapingInfo: ScrapingInfoType[] = [
-    {
-      key: 'n_schedule',
-      url: `https://www.nogizaka46.com/s/n46/media/list?dy=${dyParameter}`,
-      fn: n_getSchedule,
-    },
-    {
-      key: 'n_member',
-      url: 'https://www.nogizaka46.com/s/n46/search/artist',
-      fn: n_getMember,
-    },
-    {
-      key: 'h_schedule',
-      url: `https://www.hinatazaka46.com/s/official/media/list?dy=${dyParameter}`,
-      fn: h_getSchedule,
-    },
-    {
-      key: 'h_member',
-      url: 'https://www.hinatazaka46.com/s/official/search/artist',
-      fn: h_getMember,
-    },
+    // {
+    //   key: 'n_schedule',
+    //   url: `https://www.nogizaka46.com/s/n46/media/list?dy=${dyParameter}`,
+    //   fn: n_getSchedule,
+    // },
+    // {
+    //   key: 'n_member',
+    //   url: 'https://www.nogizaka46.com/s/n46/search/artist',
+    //   fn: n_getMember,
+    // },
+    // {
+    //   key: 'h_schedule',
+    //   url: `https://www.hinatazaka46.com/s/official/media/list?dy=${dyParameter}`,
+    //   fn: h_getSchedule,
+    // },
+    // {
+    //   key: 'h_member',
+    //   url: 'https://www.hinatazaka46.com/s/official/search/artist',
+    //   fn: h_getMember,
+    // },
     {
       key: 's_schedule',
       url: `https://sakurazaka46.com/s/s46/media/list?dy=${dyParameter}`,
@@ -470,10 +470,14 @@ const s_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
               })
               .map(async (item) => {
                 const time = await window.convertTime(item.querySelector('.date')?.textContent || '');
+                const date = getDateText(item.querySelector('.date')?.textContent || '');
+                const dateArray = date?.split('.');
 
                 return {
-                  date: getDateText(item.querySelector('.date')?.textContent || '')?.replace(/\./g, '-') || '',
-                  href: 'https://sakurazaka46.com/s/s46/media/list',
+                  date: date?.replace(/\./g, '-') || '',
+                  href: dateArray
+                    ? `https://sakurazaka46.com/s/s46/media/list?dy=${dateArray[0]}${dateArray[1]}${dateArray[2]}`
+                    : '',
                   category: item.querySelector('.type')?.textContent || undefined,
                   startTime: time ? time[0] : undefined,
                   endTime: time ? time[1] : undefined,
