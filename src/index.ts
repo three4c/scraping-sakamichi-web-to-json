@@ -147,7 +147,7 @@ const main = async () => {
     };
   });
 
-  if (!isProd) {
+  if (isProd) {
     await setDoc(convertData);
   } else {
     console.log(JSON.stringify(convertData, null, 2));
