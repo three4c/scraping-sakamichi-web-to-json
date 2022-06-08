@@ -39,12 +39,12 @@ initializeApp({
 const db = getFirestore();
 db.settings({ ignoreUndefinedProperties: true });
 
-const setDoc = async (field: any) => {
+const setDoc = async (group: any) => {
   const data: FirebaseFirestore.DocumentData = {
-    field,
+    group,
   };
 
-  await db.collection('46pic').doc('group').set(data);
+  await db.collection('46pic').doc('schedule').set(data);
 };
 
 const { year, month, day } = isProd
