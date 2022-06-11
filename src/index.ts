@@ -20,6 +20,7 @@ import {
   ResultType,
   ConvertDataType,
   ArgsType,
+  TicketType,
 } from 'types';
 
 dotenv.config();
@@ -39,12 +40,12 @@ initializeApp({
 const db = getFirestore();
 db.settings({ ignoreUndefinedProperties: true });
 
-const setDoc = async (group: any) => {
+const setDoc = async (doc: string, group: any) => {
   const data: FirebaseFirestore.DocumentData = {
     group,
   };
 
-  await db.collection('46pic').doc('schedule').set(data);
+  await db.collection('46pic').doc(doc).set(data);
 };
 
 const { year, month, day } = isProd
@@ -69,6 +70,11 @@ const main = async () => {
       fn: n_getMember,
     },
     {
+      key: 'n_ticket',
+      url: `https://www.nogizaka46.com/s/n46/news/list?ct=live&dy=${dyParameter}`,
+      fn: n_getTicket,
+    },
+    {
       key: 'h_schedule',
       url: `https://www.hinatazaka46.com/s/official/media/list?dy=${dyParameter}`,
       fn: h_getSchedule,
@@ -79,6 +85,11 @@ const main = async () => {
       fn: h_getMember,
     },
     {
+      key: 'h_ticket',
+      url: `https://www.hinatazaka46.com/s/official/news/list?cd=event&dy=${dyParameter}`,
+      fn: h_getTicket,
+    },
+    {
       key: 's_schedule',
       url: `https://sakurazaka46.com/s/s46/media/list?dy=${dyParameter}`,
       fn: s_getSchedule,
@@ -87,6 +98,11 @@ const main = async () => {
       key: 's_member',
       url: 'https://sakurazaka46.com/s/s46/search/artist',
       fn: s_getMember,
+    },
+    {
+      key: 's_ticket',
+      url: `https://sakurazaka46.com/s/s46/news/list?cd=event&dy=${dyParameter}`,
+      fn: s_getTicket,
     },
   ];
 
@@ -110,6 +126,24 @@ const main = async () => {
       color: 'pink',
       schedule: field.s_schedule,
       member: field.s_member,
+    },
+  ];
+
+  const ticketData = [
+    {
+      name: '乃木坂46',
+      color: 'purple',
+      ticket: field.n_ticket,
+    },
+    {
+      name: '日向坂46',
+      color: 'blue',
+      ticket: field.h_ticket,
+    },
+    {
+      name: '櫻坂46',
+      color: 'pink',
+      ticket: field.s_ticket,
     },
   ];
 
@@ -148,9 +182,11 @@ const main = async () => {
   });
 
   if (isProd) {
-    await setDoc(convertData);
+    await setDoc('schedule', convertData);
+    await setDoc('ticket', ticketData);
   } else {
     console.log(JSON.stringify(convertData, null, 2));
+    console.log(JSON.stringify(ticketData, null, 2));
   }
 
   console.log('🎉 End');
@@ -166,10 +202,13 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   const result: ResultType = {
     n_schedule: [],
     n_member: [],
+    n_ticket: [],
     h_schedule: [],
     h_member: [],
+    h_ticket: [],
     s_schedule: [],
     s_member: [],
+    s_ticket: [],
   };
 
   // page.on('console', (msg) => {
@@ -190,6 +229,10 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
     }
 
     if (item.key === 'n_member' || item.key === 'h_member' || item.key === 's_member') {
+      result[item.key] = await item.fn(page);
+    }
+
+    if (item.key === 'n_ticket' || item.key === 'h_ticket' || item.key === 's_ticket') {
       result[item.key] = await item.fn(page);
     }
   }
@@ -324,6 +367,17 @@ const n_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
     )
   );
 
+const n_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
+  page.$$eval('.m--nsone', (element) =>
+    element
+      .filter((item) => item.querySelector('.m--nsone__ttl')?.textContent?.match(/スタート|チケット/g))
+      .map((item) => ({
+        href: item.querySelector('.m--nsone__a')?.getAttribute('href') || '',
+        date: item.querySelector('.m--nsone__date')?.textContent || '',
+        text: item.querySelector('.m--nsone__ttl')?.textContent || '',
+      }))
+  );
+
 /** 日向坂 */
 const h_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
   const getDate = async (args: ArgsType) =>
@@ -437,6 +491,23 @@ const h_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
             name: await window.convertText(item.querySelector('.c-member__name')?.textContent || ''),
             hiragana: await window.convertText(item.querySelector('.c-member__kana')?.textContent || ''),
             src: item.querySelector('img')?.getAttribute('src') || '',
+          };
+        })
+    )
+  );
+
+const h_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
+  page.$$eval('.p-news__item', (element) =>
+    Promise.all(
+      element
+        .filter((item) => item.querySelector('.c-news__text')?.textContent?.match(/スタート|チケット/g))
+        .map(async (item) => {
+          const href = item.querySelector('a')?.getAttribute('href');
+
+          return {
+            href: href ? `https://www.hinatazaka46.com${href}` : '',
+            date: item.querySelector('.c-news__date')?.textContent || '',
+            text: await window.convertText(item.querySelector('.c-news__text')?.textContent || ''),
           };
         })
     )
@@ -567,6 +638,21 @@ const s_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
           };
         })
     )
+  );
+
+const s_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
+  page.$$eval('.cate-event.box', (element) =>
+    element
+      .filter((item) => item.querySelector('.lead')?.textContent?.match(/スタート|チケット/g))
+      .map((item) => {
+        const href = item.querySelector('a')?.getAttribute('href');
+
+        return {
+          href: href ? `https://sakurazaka46.com${href}` : '',
+          date: item.querySelector('.date')?.textContent || '',
+          text: item.querySelector('.lead')?.textContent || '',
+        };
+      })
   );
 
 main();
