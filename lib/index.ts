@@ -89,6 +89,56 @@ export const convertTime = (time: string) => {
 export const sliceBrackets = (text: string) =>
   text.slice(0, 1) === '「' && text.slice(-1) === '」' ? text.slice(1, text.length - 1) : text;
 
+export const convertPackDate = (year: number, month: number, day: number, date: DateType[]) => {
+  const MAX_LENGTH = 4;
+  const firstOrEndDay = getFirstOrEndDay(year, month, day);
+
+  const packDate = [...Array(MAX_LENGTH)].map((_, index) => {
+    const type = firstOrEndDay.type
+      ? firstOrEndDay.type === 'firstDay' || firstOrEndDay.type === 'firstMonth'
+        ? 'first'
+        : 'last'
+      : undefined;
+
+    const convertDate =
+      type === 'first'
+        ? index === 0
+          ? {
+              year: firstOrEndDay.year,
+              month: firstOrEndDay.month,
+              day: firstOrEndDay.day,
+            }
+          : {
+              year,
+              month,
+              day: day + index - 1,
+            }
+        : type === 'last'
+        ? index >= 2
+          ? {
+              year: firstOrEndDay.year,
+              month: firstOrEndDay.month,
+              day: firstOrEndDay.day + index - 2,
+            }
+          : {
+              year,
+              month,
+              day: day + index - 1,
+            }
+        : { year, month, day: day + index - 1 };
+
+    return {
+      date: `${convertDate.year}-${`0${convertDate.month}`.slice(-2)}-${`0${convertDate.day}`.slice(-2)}`,
+      schedule: [],
+    };
+  });
+
+  return packDate.map((item) => ({
+    date: item.date,
+    schedule: date.find((dateItem) => dateItem.date === item.date)?.schedule || [],
+  }));
+};
+
 export const convertOver24Time = (date: DateType[]) => {
   for (let i = 0; i < date.length; i++) {
     const overTimeSchedule = date[i].schedule

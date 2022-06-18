@@ -8,6 +8,7 @@ import {
   sliceBrackets,
   convertOver24Time,
   convertHalfToFull,
+  convertPackDate,
   getFirstOrEndDay,
 } from 'lib';
 import puppeteer, { SerializableOrJSHandle } from 'puppeteer';
@@ -52,8 +53,8 @@ const { year, month, day } = isProd
   ? getToday()
   : {
       year: 2022,
-      month: 5,
-      day: 31,
+      month: 6,
+      day: 13,
     };
 
 const main = async () => {
@@ -349,7 +350,7 @@ const n_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
     }),
   }));
 
-  return convertOver24Time(date);
+  return convertOver24Time(convertPackDate(year, month, day, date));
 };
 
 /** n_getScheduleで言語を切り替えているため、こちらではそのままスクレイピングを行う */
@@ -475,7 +476,7 @@ const h_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
     }
   }
 
-  return convertOver24Time(date);
+  return convertOver24Time(convertPackDate(year, month, day, date));
 };
 
 const h_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
@@ -618,7 +619,7 @@ const s_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
     date = type == 'first' ? [...addDate, ...date] : [...date, ...addDate];
   }
 
-  return date;
+  return convertOver24Time(convertPackDate(year, month, day, date));
 };
 
 const s_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
