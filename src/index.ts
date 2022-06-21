@@ -54,7 +54,7 @@ const { year, month, day } = isProd
   : {
       year: 2022,
       month: 6,
-      day: 13,
+      day: 21,
     };
 
 const main = async () => {
@@ -72,7 +72,7 @@ const main = async () => {
     },
     {
       key: 'n_ticket',
-      url: `https://www.nogizaka46.com/s/n46/news/list?ct=live&dy=${dyParameter}`,
+      url: `https://www.nogizaka46.com/s/n46/news/list?dy=${dyParameter}`,
       fn: n_getTicket,
     },
     {
@@ -371,7 +371,7 @@ const n_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
 const n_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
   page.$$eval('.m--nsone', (element) =>
     element
-      .filter((item) => item.querySelector('.m--nsone__ttl')?.textContent?.match(/スタート|チケット|先行/g))
+      .filter((item) => item.querySelector('.m--nsone__ttl')?.textContent?.match(/スタート！|チケット|先行/g))
       .map((item) => ({
         href: item.querySelector('.m--nsone__a')?.getAttribute('href') || '',
         date: item.querySelector('.m--nsone__date')?.textContent || '',
@@ -501,7 +501,7 @@ const h_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
   page.$$eval('.p-news__item', (element) =>
     Promise.all(
       element
-        .filter((item) => item.querySelector('.c-news__text')?.textContent?.match(/スタート|チケット/g))
+        .filter((item) => item.querySelector('.c-news__text')?.textContent?.match(/スタート！|チケット/g))
         .map(async (item) => {
           const href = item.querySelector('a')?.getAttribute('href');
 
@@ -644,7 +644,7 @@ const s_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
 const s_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
   page.$$eval('.cate-event.box', (element) =>
     element
-      .filter((item) => item.querySelector('.lead')?.textContent?.match(/スタート|チケット/g))
+      .filter((item) => item.querySelector('.lead')?.textContent?.match(/スタート！|チケット/g))
       .map((item) => {
         const href = item.querySelector('a')?.getAttribute('href');
 
