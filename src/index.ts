@@ -371,7 +371,7 @@ const n_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
 const n_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
   page.$$eval('.m--nsone', (element) =>
     element
-      .filter((item) => item.querySelector('.m--nsone__ttl')?.textContent?.match(/スタート|チケット/g))
+      .filter((item) => item.querySelector('.m--nsone__ttl')?.textContent?.match(/スタート|チケット|先行/g))
       .map((item) => ({
         href: item.querySelector('.m--nsone__a')?.getAttribute('href') || '',
         date: item.querySelector('.m--nsone__date')?.textContent || '',
