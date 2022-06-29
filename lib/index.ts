@@ -20,7 +20,7 @@ export const getFirstOrEndDay = (
   month: number,
   day: number
 ): {
-  type?: 'firstMonth' | 'firstDay' | 'lastMonth' | 'lastDay';
+  type?: 'firstMonth' | 'firstDay' | 'lastMonth' | 'lastDay' | 'lastSecondDay';
   year: number;
   month: number;
   day: number;
@@ -29,7 +29,7 @@ export const getFirstOrEndDay = (
   const FIRST_MONTH = 1;
   const LAST_DAY = new Date(year, month, 0).getDate();
   const LAST_MONTH = 12;
-  const PEAK = 1;
+  const LAST_SECOND_DAY = 1;
 
   /** 月初 */
   if (FIRST_DAY === day) {
@@ -52,7 +52,7 @@ export const getFirstOrEndDay = (
   }
 
   /** 月末 */
-  if (Math.abs(LAST_DAY - day) <= PEAK) {
+  if (LAST_DAY === day) {
     /** 年末 */
     if (LAST_MONTH === month) {
       return {
@@ -65,6 +65,26 @@ export const getFirstOrEndDay = (
 
     return {
       type: 'lastDay',
+      year,
+      month: month + 1,
+      day: FIRST_DAY,
+    };
+  }
+
+  /** 2日前 */
+  if (LAST_DAY - day === LAST_SECOND_DAY) {
+    /** 年末 */
+    if (LAST_MONTH === month) {
+      return {
+        type: 'lastSecondDay',
+        year: year + 1,
+        month: FIRST_MONTH,
+        day: FIRST_DAY,
+      };
+    }
+
+    return {
+      type: 'lastSecondDay',
       year,
       month: month + 1,
       day: FIRST_DAY,
@@ -97,7 +117,11 @@ export const convertPackDate = (year: number, month: number, day: number, date: 
     const type = firstOrEndDay.type
       ? firstOrEndDay.type === 'firstDay' || firstOrEndDay.type === 'firstMonth'
         ? 'first'
-        : 'last'
+        : firstOrEndDay.type === 'lastDay' || firstOrEndDay.type === 'lastMonth'
+        ? 'last'
+        : firstOrEndDay.type === 'lastSecondDay'
+        ? 'lastSecond'
+        : undefined
       : undefined;
 
     const convertDate =
@@ -125,6 +149,14 @@ export const convertPackDate = (year: number, month: number, day: number, date: 
               month,
               day: day + index - 1,
             }
+        : type === 'lastSecond'
+        ? index === MAX_LENGTH - 1
+          ? {
+              year: firstOrEndDay.year,
+              month: firstOrEndDay.month,
+              day: firstOrEndDay.day,
+            }
+          : { year, month, day: day + index - 1 }
         : { year, month, day: day + index - 1 };
 
     return {

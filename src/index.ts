@@ -54,10 +54,11 @@ const { year, month, day } = isProd
   : {
       year: 2022,
       month: 6,
-      day: 21,
+      day: 29,
     };
 
 const main = async () => {
+  console.log('bbb', convertPackDate(year, month, day, []));
   const dyParameter = `${year}${`0${month}`.slice(-2)}`;
   const scrapingInfo: ScrapingInfoType[] = [
     {
