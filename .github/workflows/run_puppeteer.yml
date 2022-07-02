@@ -2,11 +2,7 @@ name: Run puppeteer
 
 on:
   schedule:
-    - cron: '30 15 * * *' #日本時間 0:30（乃木坂工事中終了後）
-    - cron: '0 21 * * *' #日本時間 6:00
-    - cron: '0 3 * * *' #日本時間 12:00
-    - cron: '0 9 * * *' #日本時間 18:00
-
+    - cron: '30 1-15/2 * * *' # 10:30 - 24:30
 jobs:
   build:
     runs-on: ubuntu-latest
