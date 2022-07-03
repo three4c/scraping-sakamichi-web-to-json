@@ -130,6 +130,24 @@ const main = async () => {
     },
   ];
 
+  const memberData = [
+    {
+      name: '乃木坂46',
+      color: 'purple',
+      ticket: field.n_member,
+    },
+    {
+      name: '日向坂46',
+      color: 'blue',
+      ticket: field.h_member,
+    },
+    {
+      name: '櫻坂46',
+      color: 'pink',
+      ticket: field.s_member,
+    },
+  ];
+
   const ticketData = [
     {
       name: '乃木坂46',
@@ -184,9 +202,11 @@ const main = async () => {
 
   if (isProd) {
     await setDoc('schedule', convertData);
+    await setDoc('member', memberData);
     await setDoc('ticket', ticketData);
   } else {
     console.log(JSON.stringify(convertData, null, 2));
+    console.log(JSON.stringify(memberData, null, 2));
     console.log(JSON.stringify(ticketData, null, 2));
   }
 
