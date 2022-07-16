@@ -134,17 +134,17 @@ const main = async () => {
     {
       name: '乃木坂46',
       color: 'purple',
-      ticket: field.n_member,
+      member: field.n_member,
     },
     {
       name: '日向坂46',
       color: 'blue',
-      ticket: field.h_member,
+      member: field.h_member,
     },
     {
       name: '櫻坂46',
       color: 'pink',
-      ticket: field.s_member,
+      member: field.s_member,
     },
   ];
 
