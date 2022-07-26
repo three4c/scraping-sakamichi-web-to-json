@@ -134,17 +134,26 @@ const main = async () => {
     {
       name: '乃木坂46',
       color: 'purple',
-      member: field.n_member,
+      member: field.n_member.map((item) => ({
+        ...item,
+        name: convertHalfToFull(item.name),
+      })),
     },
     {
       name: '日向坂46',
       color: 'blue',
-      member: field.h_member,
+      member: field.h_member.map((item) => ({
+        ...item,
+        name: convertHalfToFull(item.name),
+      })),
     },
     {
       name: '櫻坂46',
       color: 'pink',
-      member: field.s_member,
+      member: field.s_member.map((item) => ({
+        ...item,
+        name: convertHalfToFull(item.name),
+      })),
     },
   ];
 
