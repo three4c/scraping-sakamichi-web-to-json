@@ -53,8 +53,8 @@ const { year, month, day } = isProd
   ? getToday()
   : {
       year: 2022,
-      month: 6,
-      day: 29,
+      month: 11,
+      day: 1,
     };
 
 const main = async () => {
