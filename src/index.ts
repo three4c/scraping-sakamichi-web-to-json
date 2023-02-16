@@ -227,9 +227,9 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   const browser = await puppeteer.launch({
     headless: true,
     slowMo: 0,
-    args: ['--lang=ja'],
   });
   const page = await browser.newPage();
+  await page.setExtraHTTPHeaders({ 'Accept-Language': 'ja-JP' });
   const result: ResultType = {
     n_schedule: [],
     n_member: [],
@@ -274,10 +274,10 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 
 /** 乃木坂 */
 const n_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
-  // await page.click('.b--lng');
-  // await page.waitForTimeout(1000);
-  // await page.click('.b--lng__one.js-lang-swich.hv--op.ja');
-  // await page.waitForTimeout(1000);
+  await page.click('.b--lng');
+  await page.waitForTimeout(1000);
+  await page.click('.b--lng__one.js-lang-swich.hv--op.ja');
+  await page.waitForTimeout(1000);
 
   const getDate = async (args: ArgsType) =>
     await page.$$eval(
