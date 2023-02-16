@@ -229,6 +229,7 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
     slowMo: 0,
   });
   const page = await browser.newPage();
+  await page.setExtraHTTPHeaders({ 'Accept-Language': 'ja-JP' });
   const result: ResultType = {
     n_schedule: [],
     n_member: [],
