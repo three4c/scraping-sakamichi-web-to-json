@@ -229,7 +229,6 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
     slowMo: 0,
   });
   const page = await browser.newPage();
-  await page.setExtraHTTPHeaders({ 'Accept-Language': 'ja-JP' });
   const result: ResultType = {
     n_schedule: [],
     n_member: [],
@@ -253,6 +252,9 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 
   for (const item of scrapingInfo) {
     await page.goto(item.url);
+    await page.evaluate(() => {
+      document.documentElement.lang = 'ja';
+    });
     await page.waitForTimeout(1000);
 
     if (item.key === 'n_schedule' || item.key === 'h_schedule' || item.key === 's_schedule') {
