@@ -60,36 +60,36 @@ const { year, month, day } = isProd
 const main = async () => {
   const dyParameter = `${year}${`0${month}`.slice(-2)}`;
   const scrapingInfo: ScrapingInfoType[] = [
-    {
-      key: 'n_schedule',
-      url: `https://www.nogizaka46.com/s/n46/media/list?dy=${dyParameter}`,
-      fn: n_getSchedule,
-    },
-    {
-      key: 'n_member',
-      url: 'https://www.nogizaka46.com/s/n46/search/artist',
-      fn: n_getMember,
-    },
-    {
-      key: 'n_ticket',
-      url: `https://www.nogizaka46.com/s/n46/news/list?dy=${dyParameter}`,
-      fn: n_getTicket,
-    },
-    {
-      key: 'h_schedule',
-      url: `https://www.hinatazaka46.com/s/official/media/list?dy=${dyParameter}`,
-      fn: h_getSchedule,
-    },
-    {
-      key: 'h_member',
-      url: 'https://www.hinatazaka46.com/s/official/search/artist',
-      fn: h_getMember,
-    },
-    {
-      key: 'h_ticket',
-      url: `https://www.hinatazaka46.com/s/official/news/list?cd=event&dy=${dyParameter}`,
-      fn: h_getTicket,
-    },
+    // {
+    //   key: 'n_schedule',
+    //   url: `https://www.nogizaka46.com/s/n46/media/list?dy=${dyParameter}`,
+    //   fn: n_getSchedule,
+    // },
+    // {
+    //   key: 'n_member',
+    //   url: 'https://www.nogizaka46.com/s/n46/search/artist',
+    //   fn: n_getMember,
+    // },
+    // {
+    //   key: 'n_ticket',
+    //   url: `https://www.nogizaka46.com/s/n46/news/list?dy=${dyParameter}`,
+    //   fn: n_getTicket,
+    // },
+    // {
+    //   key: 'h_schedule',
+    //   url: `https://www.hinatazaka46.com/s/official/media/list?dy=${dyParameter}`,
+    //   fn: h_getSchedule,
+    // },
+    // {
+    //   key: 'h_member',
+    //   url: 'https://www.hinatazaka46.com/s/official/search/artist',
+    //   fn: h_getMember,
+    // },
+    // {
+    //   key: 'h_ticket',
+    //   url: `https://www.hinatazaka46.com/s/official/news/list?cd=event&dy=${dyParameter}`,
+    //   fn: h_getTicket,
+    // },
     {
       key: 's_schedule',
       url: `https://sakurazaka46.com/s/s46/media/list?dy=${dyParameter}`,
@@ -229,7 +229,6 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
     slowMo: 0,
   });
   const page = await browser.newPage();
-  await page.setExtraHTTPHeaders({ 'Accept-Language': 'ja-JP' });
   const result: ResultType = {
     n_schedule: [],
     n_member: [],
@@ -253,9 +252,6 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 
   for (const item of scrapingInfo) {
     await page.goto(item.url);
-    await page.evaluate(() => {
-      document.documentElement.lang = 'ja';
-    });
     await page.waitForTimeout(1000);
 
     if (item.key === 'n_schedule' || item.key === 'h_schedule' || item.key === 's_schedule') {
@@ -277,10 +273,10 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 
 /** 乃木坂 */
 const n_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
-  // await page.click('.b--lng');
-  // await page.waitForTimeout(1000);
-  // await page.click('.b--lng__one.js-lang-swich.hv--op.ja');
-  // await page.waitForTimeout(1000);
+  await page.click('.b--lng');
+  await page.waitForTimeout(1000);
+  await page.click('.b--lng__one.js-lang-swich.hv--op.ja');
+  await page.waitForTimeout(1000);
 
   const getDate = async (args: ArgsType) =>
     await page.$$eval(
@@ -548,6 +544,11 @@ const h_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
   );
 
 const s_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
+  await page.click('.wovn-lang-selector');
+  await page.waitForTimeout(1000);
+  await page.click('[data-value="ja"]');
+  await page.waitForTimeout(1000);
+
   const getDate = async (args: ArgsType) =>
     await page.$$eval(
       '.module-modal',
