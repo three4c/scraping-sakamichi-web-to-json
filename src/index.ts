@@ -274,9 +274,9 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 /** 乃木坂 */
 const n_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
   await page.click('.b--lng');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   await page.click('.b--lng__one.js-lang-swich.hv--op.ja');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 
   const getDate = async (args: ArgsType) =>
     await page.$$eval(
