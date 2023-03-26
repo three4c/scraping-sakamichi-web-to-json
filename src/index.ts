@@ -621,7 +621,7 @@ const s_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
             }),
           }));
 
-          return await window.convertOver24Time(convertCategories);
+          return convertCategories;
         } else {
           return [];
         }
