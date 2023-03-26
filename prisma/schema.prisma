@@ -28,11 +28,10 @@ model accounts {
 
 model groups {
   id         String  @id
-  name       String
-  color      String
+  user_id    String
+  color_id   String  @unique
   order      Int
   ticketData String?
-  user_id    String
 
   @@index([user_id])
 }
@@ -60,4 +59,26 @@ model verificationtokens {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model colors {
+  id   String @id
+  name String
+}
+
+model members {
+  id       String @id
+  kanji    String
+  hiragana String
+  src      String
+  href     String
+  color_id String @unique
+}
+
+model tickets {
+  id       String @id
+  href     String
+  date     String
+  text     String
+  color_id String @unique
 }
