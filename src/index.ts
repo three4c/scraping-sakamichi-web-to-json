@@ -26,6 +26,8 @@ import {
 
 dotenv.config();
 
+const SLEEP = 1000;
+
 const isProd = process.env.NODE_ENV !== 'development';
 
 const serviceAccount: ServiceAccount = {
@@ -52,9 +54,9 @@ const setDoc = async (doc: string, group: any) => {
 const { year, month, day } = isProd
   ? getToday()
   : {
-      year: 2022,
-      month: 11,
-      day: 1,
+      year: 2023,
+      month: 3,
+      day: 30,
     };
 
 const main = async () => {
@@ -252,7 +254,7 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 
   for (const item of scrapingInfo) {
     await page.goto(item.url);
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(SLEEP);
 
     if (item.key === 'n_schedule' || item.key === 'h_schedule' || item.key === 's_schedule') {
       result[item.key] = await item.fn(page);
@@ -274,9 +276,9 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 /** 乃木坂 */
 const n_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
   await page.click('.b--lng');
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(SLEEP * 2);
   await page.click('.b--lng__one.js-lang-swich.hv--op.ja');
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(SLEEP * 2);
 
   const getDate = async (args: ArgsType) =>
     await page.$$eval(
@@ -410,6 +412,11 @@ const n_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
 
 /** 日向坂 */
 const h_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
+  await page.click('.wovn-lang-selector');
+  await page.waitForTimeout(SLEEP);
+  await page.click('[data-value="ja"]');
+  await page.waitForTimeout(SLEEP);
+
   const getDate = async (args: ArgsType) =>
     await page.$$eval(
       '.p-schedule__list-group',
@@ -501,7 +508,7 @@ const h_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
       );
 
       date[i].schedule[j].member = member.length ? member : undefined;
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(SLEEP);
     }
   }
 
@@ -545,9 +552,9 @@ const h_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
 
 const s_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
   await page.click('.wovn-lang-selector');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(SLEEP);
   await page.click('[data-value="ja"]');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(SLEEP);
 
   const getDate = async (args: ArgsType) =>
     await page.$$eval(
