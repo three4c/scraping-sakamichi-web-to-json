@@ -28,10 +28,10 @@ model accounts {
 
 model groups {
   id         String  @id
-  user_id    String
-  color_id   String  @unique
   order      Int
   ticketData String?
+  user_id    String
+  color_id   String  @unique
 
   @@index([user_id])
 }
@@ -71,14 +71,20 @@ model members {
   kanji    String
   hiragana String
   src      String
-  href     String
+  url      String
   color_id String @unique
 }
 
 model tickets {
   id       String @id
-  href     String
+  url      String
   date     String
   text     String
   color_id String @unique
+}
+
+model schedules {
+  id                   String @id
+  extendedScheduleData Json
+  color_id             String @unique
 }
