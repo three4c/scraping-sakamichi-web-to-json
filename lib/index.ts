@@ -299,3 +299,13 @@ export const convertHalfToFull = (value: string) => {
     .replace(/ﾞ/g, '゛')
     .replace(/ﾟ/g, '゜');
 };
+
+export const createRandomStr = () => {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let randStr = '';
+  for (let i = 0; i < 25; i++) {
+    randStr += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+
+  return randStr;
+};
