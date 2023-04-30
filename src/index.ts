@@ -1,3 +1,4 @@
+import { PrismaClient, Prisma } from '@prisma/client';
 import dotenv from 'dotenv';
 import { initializeApp, cert, ServiceAccount } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -10,6 +11,7 @@ import {
   convertHalfToFull,
   convertPackDate,
   getFirstOrEndDay,
+  createRandomStr,
 } from 'lib';
 import puppeteer, { SerializableOrJSHandle } from 'puppeteer';
 import {
@@ -58,6 +60,8 @@ const { year, month, day } = isProd
       month: 3,
       day: 30,
     };
+
+const prisma = new PrismaClient();
 
 const main = async () => {
   const dyParameter = `${year}${`0${month}`.slice(-2)}`;
@@ -216,6 +220,44 @@ const main = async () => {
     await setDoc('member', memberData);
     await setDoc('ticket', ticketData);
   } else {
+    // TODO: Prisma用
+    await prisma.schedules.deleteMany();
+    await prisma.members.deleteMany();
+    await prisma.tickets.deleteMany();
+
+    await prisma.schedules.createMany({
+      data: convertData.map((item) => ({
+        id: createRandomStr(),
+        color_id: item.color,
+        extendedScheduleData: item.schedule as unknown as Prisma.JsonArray,
+      })),
+    });
+
+    memberData.forEach(async (item) => {
+      await prisma.members.createMany({
+        data: item.member.map((memberItem) => ({
+          id: createRandomStr(),
+          kanji: memberItem.name,
+          hiragana: memberItem.hiragana,
+          src: memberItem.src,
+          url: memberItem.href,
+          color_id: item.color,
+        })),
+      });
+    });
+
+    ticketData.forEach(async (item) => {
+      await prisma.tickets.createMany({
+        data: item.ticket.map((ticketItem) => ({
+          id: createRandomStr(),
+          url: ticketItem.href,
+          date: ticketItem.date,
+          text: ticketItem.text,
+          color_id: item.color,
+        })),
+      });
+    });
+
     console.log(JSON.stringify(convertData, null, 2));
     console.log(JSON.stringify(memberData, null, 2));
     console.log(JSON.stringify(ticketData, null, 2));

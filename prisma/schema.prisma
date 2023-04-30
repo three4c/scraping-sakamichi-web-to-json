@@ -72,7 +72,9 @@ model members {
   hiragana String
   src      String
   url      String
-  color_id String @unique
+  color_id String
+
+  @@index([color_id])
 }
 
 model tickets {
@@ -80,7 +82,9 @@ model tickets {
   url      String
   date     String
   text     String
-  color_id String @unique
+  color_id String
+
+  @@index([color_id])
 }
 
 model schedules {
