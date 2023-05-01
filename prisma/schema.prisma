@@ -68,7 +68,7 @@ model colors {
 
 model members {
   id       String @id
-  kanji    String
+  name     String
   hiragana String
   src      String
   href     String

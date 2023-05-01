@@ -237,7 +237,7 @@ const main = async () => {
       await prisma.members.createMany({
         data: item.member.map((memberItem) => ({
           id: createRandomStr(),
-          kanji: memberItem.name,
+          name: memberItem.name,
           hiragana: memberItem.hiragana,
           src: memberItem.src,
           href: memberItem.href,
