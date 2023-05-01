@@ -71,7 +71,7 @@ model members {
   kanji    String
   hiragana String
   src      String
-  url      String
+  href     String
   color_id String
 
   @@index([color_id])
@@ -79,7 +79,7 @@ model members {
 
 model tickets {
   id       String @id
-  url      String
+  href     String
   date     String
   text     String
   color_id String

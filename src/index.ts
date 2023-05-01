@@ -240,7 +240,7 @@ const main = async () => {
           kanji: memberItem.name,
           hiragana: memberItem.hiragana,
           src: memberItem.src,
-          url: memberItem.href,
+          href: memberItem.href,
           color_id: item.color,
         })),
       });
@@ -250,7 +250,7 @@ const main = async () => {
       await prisma.tickets.createMany({
         data: item.ticket.map((ticketItem) => ({
           id: createRandomStr(),
-          url: ticketItem.href,
+          href: ticketItem.href,
           date: ticketItem.date,
           text: ticketItem.text,
           color_id: item.color,
