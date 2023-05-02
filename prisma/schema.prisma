@@ -31,9 +31,9 @@ model groups {
   order      Int
   ticketData String?
   user_id    String
-  color_id   String  @unique
+  color_id   String
 
-  @@index([user_id])
+  @@index([user_id, color_id])
 }
 
 model sessions {
@@ -55,14 +55,14 @@ model users {
 
 model verificationtokens {
   identifier String
-  token      String   @unique
+  token      String
   expires    DateTime
 
   @@unique([identifier, token])
 }
 
 model colors {
-  id   String @id
+  id   String @id @unique
   name String
 }
 
@@ -90,5 +90,7 @@ model tickets {
 model schedules {
   id                   String @id
   extendedScheduleData Json
-  color_id             String @unique
+  color_id             String
+
+  @@index([color_id])
 }
