@@ -11,7 +11,6 @@ import {
   convertHalfToFull,
   convertPackDate,
   getFirstOrEndDay,
-  createRandomStr,
 } from 'lib';
 import puppeteer, { SerializableOrJSHandle } from 'puppeteer';
 import {
@@ -226,35 +225,58 @@ const main = async () => {
     await prisma.tickets.deleteMany();
 
     await prisma.schedules.createMany({
-      data: convertData.map((item) => ({
-        id: createRandomStr(),
+      data: convertData.map((item, index) => ({
+        id: index + 1,
         color_id: item.color,
         extendedScheduleData: item.schedule as unknown as Prisma.JsonArray,
       })),
     });
 
+    let sumMemberIndex = 0;
+    let sumTicketIndex = 0;
+
     memberData.forEach(async (item) => {
-      await prisma.members.createMany({
-        data: item.member.map((memberItem) => ({
-          id: createRandomStr(),
+      const data = item.member.map((memberItem, memberIndex) => {
+        const obj = {
+          id: memberIndex + 1 + sumMemberIndex,
           name: memberItem.name,
           hiragana: memberItem.hiragana,
           src: memberItem.src,
           href: memberItem.href,
           color_id: item.color,
-        })),
+        };
+
+        if (item.member.length - 1 === memberIndex) {
+          sumMemberIndex += item.member.length;
+        }
+
+        return obj;
+      });
+
+      await prisma.members.createMany({
+        data,
       });
     });
 
     ticketData.forEach(async (item) => {
-      await prisma.tickets.createMany({
-        data: item.ticket.map((ticketItem) => ({
-          id: createRandomStr(),
+      const data = item.ticket.map((ticketItem, ticketIndex) => {
+        const obj = {
+          id: ticketIndex + 1 + sumTicketIndex,
           href: ticketItem.href,
           date: ticketItem.date,
           text: ticketItem.text,
           color_id: item.color,
-        })),
+        };
+
+        if (item.ticket.length - 1 === ticketIndex) {
+          sumTicketIndex += item.ticket.length;
+        }
+
+        return obj;
+      });
+
+      await prisma.tickets.createMany({
+        data,
       });
     });
 

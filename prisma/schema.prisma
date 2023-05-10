@@ -27,7 +27,7 @@ model accounts {
 }
 
 model groups {
-  id         String  @id
+  id         Int     @id @default(autoincrement())
   order      Int
   ticketData String?
   user_id    String
@@ -67,7 +67,7 @@ model colors {
 }
 
 model members {
-  id       String @id
+  id       Int    @id @default(autoincrement())
   name     String
   hiragana String
   src      String
@@ -78,7 +78,7 @@ model members {
 }
 
 model tickets {
-  id       String @id
+  id       Int    @id @default(autoincrement())
   href     String
   date     String
   text     String
@@ -88,7 +88,7 @@ model tickets {
 }
 
 model schedules {
-  id                   String @id
+  id                   Int    @id @default(autoincrement())
   extendedScheduleData Json
   color_id             String
 
