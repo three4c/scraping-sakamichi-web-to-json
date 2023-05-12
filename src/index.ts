@@ -224,6 +224,9 @@ const main = async () => {
     await prisma.members.deleteMany();
     await prisma.tickets.deleteMany();
 
+    let sumMemberIndex = 0;
+    let sumTicketIndex = 0;
+
     await prisma.schedules.createMany({
       data: convertData.map((item, index) => ({
         id: index + 1,
@@ -231,9 +234,6 @@ const main = async () => {
         extendedScheduleData: item.schedule as unknown as Prisma.JsonArray,
       })),
     });
-
-    let sumMemberIndex = 0;
-    let sumTicketIndex = 0;
 
     memberData.forEach(async (item) => {
       const data = item.member.map((memberItem, memberIndex) => {
