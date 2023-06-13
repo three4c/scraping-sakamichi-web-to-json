@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import { initializeApp, cert, ServiceAccount } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import {
+  addColor,
+  addId,
   getToday,
   convertText,
   convertTime,
@@ -23,6 +25,7 @@ import {
   ConvertDataType,
   ArgsType,
   TicketType,
+  ColorType,
 } from 'types';
 
 dotenv.config();
@@ -135,50 +138,69 @@ const main = async () => {
     },
   ];
 
-  const memberData = [
-    {
-      name: '乃木坂46',
-      color: 'purple',
-      member: field.n_member.map((item) => ({
-        ...item,
-        name: convertHalfToFull(item.name),
-      })),
-    },
-    {
-      name: '日向坂46',
-      color: 'blue',
-      member: field.h_member.map((item) => ({
-        ...item,
-        name: convertHalfToFull(item.name),
-      })),
-    },
-    {
-      name: '櫻坂46',
-      color: 'pink',
-      member: field.s_member.map((item) => ({
-        ...item,
-        name: convertHalfToFull(item.name),
-      })),
-    },
-  ];
+  const dateData: DateType[] = addId([
+    ...addColor(field.n_schedule, 'purple'),
+    ...addColor(field.h_schedule, 'blue'),
+    ...addColor(field.s_schedule, 'pink'),
+  ]);
 
-  const ticketData = [
-    {
-      name: '乃木坂46',
-      color: 'purple',
-      ticket: field.n_ticket,
-    },
-    {
-      name: '日向坂46',
-      color: 'blue',
-      ticket: field.h_ticket,
-    },
-    {
-      name: '櫻坂46',
-      color: 'pink',
-      ticket: field.s_ticket,
-    },
-  ];
+  const convertScheduleData = (array: DateType[]) => {
+    const scheduleData: ScheduleType[] = [];
+    let sumScheduleIndex = 0;
+
+    array.forEach((item, index) =>
+      item.schedule.forEach((scheduleItem, scheduleIndex) => {
+        scheduleData.push({
+          id: scheduleIndex + 1 + sumScheduleIndex,
+          dateId: index + 1,
+          colorId: item.colorId,
+          href: scheduleItem.href,
+          text: scheduleItem.text,
+          category: scheduleItem.category,
+          startTime: scheduleItem.startTime,
+          endTime: scheduleItem.endTime,
+        });
+
+        if (item.schedule.length - 1 === scheduleIndex) {
+          sumScheduleIndex += item.schedule.length;
+        }
+      })
+    );
+
+    return scheduleData;
+  };
+
+  const scheduleData = convertScheduleData(dateData);
+
+  const memberData = addId([
+    ...addColor(
+      field.n_member.map((item) => ({
+        ...item,
+        name: convertHalfToFull(item.name),
+      })),
+      'purple'
+    ),
+    ...addColor(
+      field.h_member.map((item) => ({
+        ...item,
+        name: convertHalfToFull(item.name),
+      })),
+      'blue'
+    ),
+    ...addColor(
+      field.n_member.map((item) => ({
+        ...item,
+        name: convertHalfToFull(item.name),
+      })),
+      'pink'
+    ),
+  ]);
+
+  const ticketData: TicketType[] = addId([
+    ...addColor(field.n_ticket, 'purple'),
+    ...addColor(field.h_ticket, 'blue'),
+    ...addColor(field.s_ticket, 'pink'),
+  ]);
 
   const convertData: ConvertDataType[] = data.map((item) => {
     const member = item.member?.map((item) => ({
@@ -220,64 +242,39 @@ const main = async () => {
     await setDoc('ticket', ticketData);
   } else {
     // TODO: Prisma用
+    await prisma.date.deleteMany();
     await prisma.schedules.deleteMany();
     await prisma.members.deleteMany();
     await prisma.tickets.deleteMany();
 
-    let sumMemberIndex = 0;
-    let sumTicketIndex = 0;
-
-    await prisma.schedules.createMany({
-      data: convertData.map((item, index) => ({
-        id: index + 1,
-        color_id: item.color,
-        extendedScheduleData: item.schedule as unknown as Prisma.JsonArray,
+    await prisma.date.createMany({
+      data: dateData.map((item) => ({
+        id: item.id,
+        date: item.date,
       })),
     });
 
-    memberData.forEach(async (item) => {
-      const data = item.member.map((memberItem, memberIndex) => {
-        const obj = {
-          id: memberIndex + 1 + sumMemberIndex,
-          name: memberItem.name,
-          hiragana: memberItem.hiragana,
-          src: memberItem.src,
-          href: memberItem.href,
-          color_id: item.color,
-        };
-
-        if (item.member.length - 1 === memberIndex) {
-          sumMemberIndex += item.member.length;
-        }
-
-        return obj;
-      });
-
-      await prisma.members.createMany({
-        data,
-      });
+    await prisma.schedules.createMany({
+      data: scheduleData.map((item) => ({
+        id: item.id || 0,
+        color_id: item.colorId || '',
+        date_id: item.dateId || 0,
+        category: item.category,
+        href: item.href,
+        text: item.text,
+        startTime: item.startTime,
+        endTime: item.endTime,
+      })),
     });
 
-    ticketData.forEach(async (item) => {
-      const data = item.ticket.map((ticketItem, ticketIndex) => {
-        const obj = {
-          id: ticketIndex + 1 + sumTicketIndex,
-          href: ticketItem.href,
-          date: ticketItem.date,
-          text: ticketItem.text,
-          color_id: item.color,
-        };
-
-        if (item.ticket.length - 1 === ticketIndex) {
-          sumTicketIndex += item.ticket.length;
-        }
-
-        return obj;
-      });
-
-      await prisma.tickets.createMany({
-        data,
-      });
+    await prisma.tickets.createMany({
+      data: ticketData.map((item) => ({
+        id: item.id || 0,
+        href: item.href,
+        date: item.date,
+        text: item.text,
+        color_id: item.colorId || '',
+      })),
     });
 
     console.log(JSON.stringify(convertData, null, 2));

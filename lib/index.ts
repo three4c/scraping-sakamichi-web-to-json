@@ -1,4 +1,4 @@
-import { DateType, ScheduleType, ScheduleFilterType, ArgsType } from 'types';
+import { ColorType, DateType, ScheduleType, ScheduleFilterType, ArgsType } from 'types';
 
 export const isArgsType = (arg: any): arg is ArgsType => arg;
 
@@ -309,3 +309,15 @@ export const createRandomStr = () => {
 
   return randStr;
 };
+
+export const addColor = (array: any[], colorId: ColorType) =>
+  array.map((item) => ({
+    ...item,
+    colorId,
+  }));
+
+export const addId = (array: any[]) =>
+  array.map((item, index) => ({
+    ...item,
+    id: index + 1,
+  }));

@@ -67,14 +67,15 @@ model colors {
 }
 
 model members {
-  id       Int    @id @default(autoincrement())
-  name     String
-  hiragana String
-  src      String
-  href     String
-  color_id String
+  id          Int    @id @default(autoincrement())
+  name        String
+  hiragana    String
+  src         String
+  href        String
+  color_id    String
+  schedule_id Int
 
-  @@index([color_id])
+  @@index([color_id, schedule_id])
 }
 
 model tickets {
@@ -88,9 +89,19 @@ model tickets {
 }
 
 model schedules {
-  id                   Int    @id @default(autoincrement())
-  extendedScheduleData Json
-  color_id             String
+  id        Int     @id @default(autoincrement())
+  category  String?
+  href      String
+  text      String
+  color_id  String
+  date_id   Int
+  endTime   String?
+  startTime String?
 
-  @@index([color_id])
+  @@index([color_id, date_id])
+}
+
+model Date {
+  id   Int    @id @default(autoincrement())
+  date String
 }

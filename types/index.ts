@@ -2,9 +2,11 @@ import puppeteer from 'puppeteer';
 
 export type ConvertDataType = Omit<DataType, 'member'>;
 
+export type ColorType = 'purple' | 'blue' | 'pink';
+
 export interface DataType {
   name: '乃木坂46' | '日向坂46' | '櫻坂46';
-  color: 'purple' | 'blue' | 'pink';
+  color: ColorType;
   schedule: DateType[];
   member: MemberType[];
 }
@@ -43,6 +45,8 @@ interface ScrapingInfoCommon {
 }
 
 export interface DateType {
+  id?: number;
+  colorId?: ColorType;
   date: string;
   schedule: ScheduleType[];
 }
@@ -52,6 +56,9 @@ export interface ScheduleFilterType extends ScheduleType {
 }
 
 export interface ScheduleType {
+  id?: number;
+  dateId?: number;
+  colorId?: string;
   href: string;
   text: string;
   category?: string;
@@ -68,6 +75,8 @@ export interface MemberType {
 }
 
 export interface TicketType {
+  id?: number;
+  colorId?: string;
   href: string;
   date: string;
   text: string;
