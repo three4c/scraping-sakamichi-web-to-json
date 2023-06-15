@@ -138,21 +138,28 @@ const main = async () => {
     },
   ];
 
-  const dateData: DateType[] = addId([
+  const date: DateType[] = [
     ...addColor(field.n_schedule, 'purple'),
     ...addColor(field.h_schedule, 'blue'),
     ...addColor(field.s_schedule, 'pink'),
-  ]);
+  ];
+
+  const dateData = Array.from(
+    date.reduce((acc, cur) => acc.set(cur.date, cur), new Map<string, DateType>()).values()
+  ).map((item, index) => ({
+    id: index + 1,
+    date: item.date,
+  }));
 
   const convertScheduleData = (array: DateType[]) => {
     const scheduleData: ScheduleType[] = [];
     let sumScheduleIndex = 0;
 
-    array.forEach((item, index) =>
+    array.forEach((item) =>
       item.schedule.forEach((scheduleItem, scheduleIndex) => {
         scheduleData.push({
           id: scheduleIndex + 1 + sumScheduleIndex,
-          dateId: index + 1,
+          dateId: dateData.find((dateItem) => dateItem.date === item.date)?.id,
           colorId: item.colorId,
           href: scheduleItem.href,
           text: scheduleItem.text,
@@ -170,9 +177,9 @@ const main = async () => {
     return scheduleData;
   };
 
-  const scheduleData = convertScheduleData(dateData);
+  const scheduleData = convertScheduleData(date);
 
-  const memberData = addId([
+  const memberData: MemberType[] = addId([
     ...addColor(
       field.n_member.map((item) => ({
         ...item,
