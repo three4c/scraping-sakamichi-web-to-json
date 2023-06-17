@@ -26,6 +26,7 @@ import {
   ArgsType,
   TicketType,
   ColorType,
+  MemberScheduleType,
 } from 'types';
 
 dotenv.config();
@@ -158,14 +159,10 @@ const main = async () => {
     array.forEach((item) =>
       item.schedule.forEach((scheduleItem, scheduleIndex) => {
         scheduleData.push({
+          ...scheduleItem,
           id: scheduleIndex + 1 + sumScheduleIndex,
           dateId: dateData.find((dateItem) => dateItem.date === item.date)?.id,
           colorId: item.colorId,
-          href: scheduleItem.href,
-          text: scheduleItem.text,
-          category: scheduleItem.category,
-          startTime: scheduleItem.startTime,
-          endTime: scheduleItem.endTime,
         });
 
         if (item.schedule.length - 1 === scheduleIndex) {
@@ -195,7 +192,7 @@ const main = async () => {
       'blue'
     ),
     ...addColor(
-      field.n_member.map((item) => ({
+      field.s_member.map((item) => ({
         ...item,
         name: convertHalfToFull(item.name),
       })),
@@ -208,6 +205,31 @@ const main = async () => {
     ...addColor(field.h_ticket, 'blue'),
     ...addColor(field.s_ticket, 'pink'),
   ]);
+
+  const convertMemberScheduleData = (array: ScheduleType[]): MemberScheduleType[] => {
+    const memberScheduleData: MemberScheduleType[] = [];
+    array.forEach((item) => {
+      const member = item.member?.map((memberItem) => ({
+        scheduleId: item.id,
+        name: convertHalfToFull(memberItem.name),
+      }));
+
+      member?.forEach((memberItem) => {
+        memberData.forEach((memberDataItem) => {
+          if (memberItem.name === memberDataItem.name) {
+            memberScheduleData.push({
+              memberId: memberDataItem.id,
+              scheduleId: item.id,
+            });
+          }
+        });
+      });
+    });
+
+    return addId(memberScheduleData);
+  };
+
+  const memberScheduleData = convertMemberScheduleData(scheduleData);
 
   const convertData: ConvertDataType[] = data.map((item) => {
     const member = item.member?.map((item) => ({
@@ -253,6 +275,7 @@ const main = async () => {
     await prisma.schedules.deleteMany();
     await prisma.members.deleteMany();
     await prisma.tickets.deleteMany();
+    await prisma.member_schedules.deleteMany();
 
     await prisma.date.createMany({
       data: dateData.map((item) => ({
@@ -263,24 +286,43 @@ const main = async () => {
 
     await prisma.schedules.createMany({
       data: scheduleData.map((item) => ({
-        id: item.id || 0,
+        id: item.id,
         color_id: item.colorId || '',
         date_id: item.dateId || 0,
-        category: item.category,
         href: item.href,
         text: item.text,
+        category: item.category,
         startTime: item.startTime,
         endTime: item.endTime,
+      })),
+    });
+
+    await prisma.members.createMany({
+      data: memberData.map((item) => ({
+        id: item.id,
+        color_id: item.colorId || '',
+        href: item.href,
+        name: item.name,
+        hiragana: item.hiragana,
+        src: item.src,
+      })),
+    });
+
+    await prisma.member_schedules.createMany({
+      data: memberScheduleData.map((item) => ({
+        id: item.id,
+        member_id: item.memberId || 0,
+        schedule_id: item.scheduleId || 0,
       })),
     });
 
     await prisma.tickets.createMany({
       data: ticketData.map((item) => ({
         id: item.id || 0,
+        color_id: item.colorId || '',
         href: item.href,
         date: item.date,
         text: item.text,
-        color_id: item.colorId || '',
       })),
     });
 

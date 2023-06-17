@@ -68,6 +68,8 @@ export interface ScheduleType {
 }
 
 export interface MemberType {
+  id?: number;
+  colorId?: string;
   href: string;
   name: string;
   hiragana: string;
@@ -80,6 +82,12 @@ export interface TicketType {
   href: string;
   date: string;
   text: string;
+}
+
+export interface MemberScheduleType {
+  id?: number;
+  memberId?: number;
+  scheduleId?: number;
 }
 
 export interface ArgsType {

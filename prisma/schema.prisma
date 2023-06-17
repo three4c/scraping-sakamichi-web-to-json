@@ -67,15 +67,14 @@ model colors {
 }
 
 model members {
-  id          Int    @id @default(autoincrement())
-  name        String
-  hiragana    String
-  src         String
-  href        String
-  color_id    String
-  schedule_id Int
+  id       Int    @id @default(autoincrement())
+  name     String
+  hiragana String
+  src      String
+  href     String
+  color_id String
 
-  @@index([color_id, schedule_id])
+  @@index([color_id])
 }
 
 model tickets {
@@ -104,4 +103,12 @@ model schedules {
 model Date {
   id   Int    @id @default(autoincrement())
   date String
+}
+
+model member_schedules {
+  id          Int @id @default(autoincrement())
+  member_id   Int
+  schedule_id Int
+
+  @@index([member_id, schedule_id])
 }
