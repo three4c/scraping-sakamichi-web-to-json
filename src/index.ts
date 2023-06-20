@@ -59,8 +59,8 @@ const { year, month, day } = isProd
   ? getToday()
   : {
       year: 2023,
-      month: 3,
-      day: 30,
+      month: 6,
+      day: 20,
     };
 
 const prisma = new PrismaClient();
@@ -270,13 +270,13 @@ const main = async () => {
     await setDoc('ticket', ticketData);
   } else {
     // TODO: Prisma用
-    await prisma.date.deleteMany();
+    await prisma.dates.deleteMany();
     await prisma.schedules.deleteMany();
     await prisma.members.deleteMany();
     await prisma.tickets.deleteMany();
     await prisma.member_schedules.deleteMany();
 
-    await prisma.date.createMany({
+    await prisma.dates.createMany({
       data: dateData.map((item) => ({
         id: item.id,
         date: item.date,

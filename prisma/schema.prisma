@@ -100,15 +100,15 @@ model schedules {
   @@index([color_id, date_id])
 }
 
-model Date {
-  id   Int    @id @default(autoincrement())
-  date String
-}
-
 model member_schedules {
   id          Int @id @default(autoincrement())
   member_id   Int
   schedule_id Int
 
   @@index([member_id, schedule_id])
+}
+
+model dates {
+  id   Int    @id @default(autoincrement())
+  date String
 }
