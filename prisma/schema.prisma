@@ -96,6 +96,7 @@ model schedules {
   date_id   Int
   endTime   String?
   startTime String?
+  dateTime  String?
 
   @@index([color_id, date_id])
 }

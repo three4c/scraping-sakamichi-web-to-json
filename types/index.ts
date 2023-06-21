@@ -64,6 +64,7 @@ export interface ScheduleType {
   category?: string;
   startTime?: string;
   endTime?: string;
+  dateTime?: string;
   member?: Pick<MemberType, 'name'>[];
 }
 

@@ -162,6 +162,7 @@ const main = async () => {
           id: scheduleIndex + 1 + sumScheduleIndex,
           dateId: dateData.find((dateItem) => dateItem.date === item.date)?.id,
           colorId: item.colorId,
+          dateTime: scheduleItem.startTime ? `${item.date}T${scheduleItem.startTime}+09:00` : undefined,
         });
 
         if (item.schedule.length - 1 === scheduleIndex) {
@@ -293,6 +294,7 @@ const main = async () => {
         category: item.category,
         startTime: item.startTime,
         endTime: item.endTime,
+        dateTime: item.dateTime,
       })),
     });
 
