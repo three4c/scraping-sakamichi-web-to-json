@@ -55,13 +55,7 @@ const setDoc = async (doc: string, group: any) => {
   await db.collection('46pic').doc(doc).set(data);
 };
 
-const { year, month, day } = isProd
-  ? getToday()
-  : {
-      year: 2023,
-      month: 6,
-      day: 20,
-    };
+const { year, month, day } = getToday();
 
 const prisma = new PrismaClient();
 
