@@ -260,11 +260,13 @@ const main = async () => {
   });
 
   if (isProd) {
+    /** FirebaseからPrismaに移管する */
+    /** Firebase */
     await setDoc('schedule', convertData);
     await setDoc('member', memberData);
     await setDoc('ticket', ticketData);
-  } else {
-    // TODO: Prisma用
+
+    /** Prisma */
     await prisma.dates.deleteMany();
     await prisma.schedules.deleteMany();
     await prisma.members.deleteMany();
@@ -320,7 +322,7 @@ const main = async () => {
         text: item.text,
       })),
     });
-
+  } else {
     console.log(JSON.stringify(convertData, null, 2));
     console.log(JSON.stringify(memberData, null, 2));
     console.log(JSON.stringify(ticketData, null, 2));
