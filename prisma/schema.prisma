@@ -29,9 +29,9 @@ model accounts {
 model groups {
   id         Int     @id @default(autoincrement())
   order      Int
-  ticketData String?
   user_id    String
   color_id   String
+  ticketDate String?
 
   @@index([user_id, color_id])
 }
