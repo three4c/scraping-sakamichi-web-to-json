@@ -60,6 +60,7 @@ const { year, month, day } = getToday();
 const prisma = new PrismaClient();
 
 const main = async () => {
+  console.log('env', process.env.DATABASE_URL);
   const dyParameter = `${year}${`0${month}`.slice(-2)}`;
   const scrapingInfo: ScrapingInfoType[] = [
     {
