@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-1.1.x"]
 }
 
@@ -95,9 +95,9 @@ model schedules {
   text      String
   color_id  String
   date_id   Int
+  dateTime  String?
   endTime   String?
   startTime String?
-  dateTime  String?
 
   @@index([color_id, date_id])
 }
