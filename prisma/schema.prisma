@@ -28,11 +28,11 @@ model accounts {
 }
 
 model groups {
-  id         Int     @id @default(autoincrement())
-  order      Int
-  user_id    String
-  color_id   String
-  ticketDate String?
+  id          Int     @id @default(autoincrement())
+  order       Int
+  user_id     String
+  color_id    String
+  ticket_date String?
 
   @@index([user_id, color_id])
 }
@@ -89,15 +89,15 @@ model tickets {
 }
 
 model schedules {
-  id        Int     @id @default(autoincrement())
-  category  String?
-  href      String
-  text      String
-  color_id  String
-  date_id   Int
-  dateTime  String?
-  endTime   String?
-  startTime String?
+  id         Int     @id @default(autoincrement())
+  category   String?
+  href       String
+  text       String
+  color_id   String
+  date_id    Int
+  date_time  String?
+  end_time   String?
+  start_time String?
 
   @@index([color_id, date_id])
 }

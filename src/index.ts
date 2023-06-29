@@ -259,7 +259,7 @@ const main = async () => {
     };
   });
 
-  if (isProd) {
+  if (!isProd) {
     /** FirebaseからPrismaに移管する */
     /** Firebase */
     await setDoc('schedule', convertData);
@@ -288,9 +288,9 @@ const main = async () => {
         href: item.href,
         text: item.text,
         category: item.category,
-        startTime: item.startTime,
-        endTime: item.endTime,
-        dateTime: item.dateTime,
+        start_time: item.startTime,
+        end_time: item.endTime,
+        date_time: item.dateTime,
       })),
     });
 
