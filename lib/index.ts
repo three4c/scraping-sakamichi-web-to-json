@@ -312,13 +312,13 @@ export const createRandomStr = () => {
   return randStr;
 };
 
-export const addColor = (array: any[], colorId: ColorType) =>
+export const addColor = <T>(array: T[], colorId: ColorType) =>
   array.map((item) => ({
     ...item,
     colorId,
   }));
 
-export const addId = (array: any[]) =>
+export const addId = <T>(array: T[]) =>
   array.map((item, index) => ({
     ...item,
     id: index + 1,

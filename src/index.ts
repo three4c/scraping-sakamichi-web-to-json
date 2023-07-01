@@ -139,10 +139,10 @@ const main = async () => {
     },
   ];
 
-  const date: DateType[] = [
-    ...addColor(field.n_schedule, 'purple'),
-    ...addColor(field.h_schedule, 'blue'),
-    ...addColor(field.s_schedule, 'pink'),
+  const date = [
+    ...addColor<DateType>(field.n_schedule, 'purple'),
+    ...addColor<DateType>(field.h_schedule, 'blue'),
+    ...addColor<DateType>(field.s_schedule, 'pink'),
   ];
 
   const dateData = Array.from(
@@ -177,22 +177,22 @@ const main = async () => {
 
   const scheduleData = convertScheduleData(date);
 
-  const memberData: MemberType[] = addId([
-    ...addColor(
+  const memberData = addId<MemberType>([
+    ...addColor<MemberType>(
       field.n_member.map((item) => ({
         ...item,
         name: convertHalfToFull(item.name),
       })),
       'purple'
     ),
-    ...addColor(
+    ...addColor<MemberType>(
       field.h_member.map((item) => ({
         ...item,
         name: convertHalfToFull(item.name),
       })),
       'blue'
     ),
-    ...addColor(
+    ...addColor<MemberType>(
       field.s_member.map((item) => ({
         ...item,
         name: convertHalfToFull(item.name),
@@ -201,13 +201,13 @@ const main = async () => {
     ),
   ]);
 
-  const ticketData: TicketType[] = addId([
-    ...addColor(field.n_ticket, 'purple'),
-    ...addColor(field.h_ticket, 'blue'),
-    ...addColor(field.s_ticket, 'pink'),
+  const ticketData = addId<TicketType>([
+    ...addColor<TicketType>(field.n_ticket, 'purple'),
+    ...addColor<TicketType>(field.h_ticket, 'blue'),
+    ...addColor<TicketType>(field.s_ticket, 'pink'),
   ]);
 
-  const convertMemberScheduleData = (array: ScheduleType[]): MemberScheduleType[] => {
+  const convertMemberScheduleData = (array: ScheduleType[]) => {
     const memberScheduleData: MemberScheduleType[] = [];
     array.forEach((item) => {
       const member = item.member?.map((memberItem) => ({
@@ -227,7 +227,7 @@ const main = async () => {
       });
     });
 
-    return addId(memberScheduleData);
+    return addId<MemberScheduleType>(memberScheduleData);
   };
 
   const memberScheduleData = convertMemberScheduleData(scheduleData);
