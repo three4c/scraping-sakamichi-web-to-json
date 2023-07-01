@@ -7,6 +7,7 @@ import {
   addId,
   getToday,
   convertText,
+  convertDate,
   convertTime,
   sliceBrackets,
   convertOver24Time,
@@ -55,7 +56,13 @@ const setDoc = async (doc: string, group: any) => {
   await db.collection('46pic').doc(doc).set(data);
 };
 
-const { year, month, day } = getToday();
+const { year, month, day } = isProd
+  ? getToday()
+  : {
+      year: 2023,
+      month: 6,
+      day: 30,
+    };
 
 const prisma = new PrismaClient();
 
@@ -259,74 +266,68 @@ const main = async () => {
     };
   });
 
-  if (!isProd) {
-    /** FirebaseからPrismaに移管する */
-    /** Firebase */
-    await setDoc('schedule', convertData);
-    await setDoc('member', memberData);
-    await setDoc('ticket', ticketData);
+  /** FirebaseからPrismaに移管する */
+  /** Firebase */
+  await setDoc('schedule', convertData);
+  await setDoc('member', memberData);
+  await setDoc('ticket', ticketData);
 
-    /** Prisma */
-    await prisma.dates.deleteMany();
-    await prisma.schedules.deleteMany();
-    await prisma.members.deleteMany();
-    await prisma.tickets.deleteMany();
-    await prisma.member_schedules.deleteMany();
+  /** Prisma */
+  await prisma.dates.deleteMany();
+  await prisma.schedules.deleteMany();
+  await prisma.members.deleteMany();
+  await prisma.tickets.deleteMany();
+  await prisma.member_schedules.deleteMany();
 
-    await prisma.dates.createMany({
-      data: dateData.map((item) => ({
-        id: item.id,
-        date: item.date,
-      })),
-    });
+  await prisma.dates.createMany({
+    data: dateData.map((item) => ({
+      id: item.id,
+      date: item.date,
+    })),
+  });
 
-    await prisma.schedules.createMany({
-      data: scheduleData.map((item) => ({
-        id: item.id,
-        color_id: item.colorId || '',
-        date_id: item.dateId || 0,
-        href: item.href,
-        text: item.text,
-        category: item.category,
-        start_time: item.startTime,
-        end_time: item.endTime,
-        date_time: item.dateTime,
-      })),
-    });
+  await prisma.schedules.createMany({
+    data: scheduleData.map((item) => ({
+      id: item.id,
+      color_id: item.colorId || '',
+      date_id: item.dateId || 0,
+      href: item.href,
+      text: item.text,
+      category: item.category,
+      start_time: item.startTime,
+      end_time: item.endTime,
+      date_time: item.dateTime,
+    })),
+  });
 
-    await prisma.members.createMany({
-      data: memberData.map((item) => ({
-        id: item.id,
-        color_id: item.colorId || '',
-        href: item.href,
-        name: item.name,
-        hiragana: item.hiragana,
-        src: item.src,
-      })),
-    });
+  await prisma.members.createMany({
+    data: memberData.map((item) => ({
+      id: item.id,
+      color_id: item.colorId || '',
+      href: item.href,
+      name: item.name,
+      hiragana: item.hiragana,
+      src: item.src,
+    })),
+  });
 
-    await prisma.member_schedules.createMany({
-      data: memberScheduleData.map((item) => ({
-        id: item.id,
-        member_id: item.memberId || 0,
-        schedule_id: item.scheduleId || 0,
-      })),
-    });
+  await prisma.member_schedules.createMany({
+    data: memberScheduleData.map((item) => ({
+      id: item.id,
+      member_id: item.memberId || 0,
+      schedule_id: item.scheduleId || 0,
+    })),
+  });
 
-    await prisma.tickets.createMany({
-      data: ticketData.map((item) => ({
-        id: item.id || 0,
-        color_id: item.colorId || '',
-        href: item.href,
-        date: item.date,
-        text: item.text,
-      })),
-    });
-  } else {
-    console.log(JSON.stringify(convertData, null, 2));
-    console.log(JSON.stringify(memberData, null, 2));
-    console.log(JSON.stringify(ticketData, null, 2));
-  }
+  await prisma.tickets.createMany({
+    data: ticketData.map((item) => ({
+      id: item.id || 0,
+      color_id: item.colorId || '',
+      href: item.href,
+      date: item.date,
+      text: item.text,
+    })),
+  });
 
   console.log('🎉 End');
 };
@@ -355,6 +356,7 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   // });
 
   await page.exposeFunction('convertText', convertText);
+  await page.exposeFunction('convertDate', convertDate);
   await page.exposeFunction('convertTime', convertTime);
   await page.exposeFunction('convertOver24Time', convertOver24Time);
   await page.setViewport({ width: 320, height: 640 });
@@ -508,13 +510,15 @@ const n_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
 
 const n_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
   page.$$eval('.m--nsone', (element) =>
-    element
-      .filter((item) => item.querySelector('.m--nsone__ttl')?.textContent?.match(/先行|一般発売|追加販売|チケット/g))
-      .map((item) => ({
-        href: item.querySelector('.m--nsone__a')?.getAttribute('href') || '',
-        date: item.querySelector('.m--nsone__date')?.textContent || '',
-        text: item.querySelector('.m--nsone__ttl')?.textContent || '',
-      }))
+    Promise.all(
+      element
+        .filter((item) => item.querySelector('.m--nsone__ttl')?.textContent?.match(/先行|一般発売|追加販売|チケット/g))
+        .map(async (item) => ({
+          href: item.querySelector('.m--nsone__a')?.getAttribute('href') || '',
+          date: await window.convertDate(item.querySelector('.m--nsone__date')?.textContent || ''),
+          text: item.querySelector('.m--nsone__ttl')?.textContent || '',
+        }))
+    )
   );
 
 /** 日向坂 */
@@ -650,7 +654,7 @@ const h_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
 
           return {
             href: href ? `https://www.hinatazaka46.com${href}` : '',
-            date: item.querySelector('.c-news__date')?.textContent || '',
+            date: await window.convertDate(item.querySelector('.c-news__date')?.textContent || ''),
             text: await window.convertText(item.querySelector('.c-news__text')?.textContent || ''),
           };
         })
@@ -791,17 +795,19 @@ const s_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
 
 const s_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
   page.$$eval('.cate-event.box', (element) =>
-    element
-      .filter((item) => item.querySelector('.lead')?.textContent?.match(/スタート！|チケット/g))
-      .map((item) => {
-        const href = item.querySelector('a')?.getAttribute('href');
+    Promise.all(
+      element
+        .filter((item) => item.querySelector('.lead')?.textContent?.match(/スタート！|チケット/g))
+        .map(async (item) => {
+          const href = item.querySelector('a')?.getAttribute('href');
 
-        return {
-          href: href ? `https://sakurazaka46.com${href}` : '',
-          date: item.querySelector('.date')?.textContent || '',
-          text: item.querySelector('.lead')?.textContent || '',
-        };
-      })
+          return {
+            href: href ? `https://sakurazaka46.com${href}` : '',
+            date: await window.convertDate(item.querySelector('.date')?.textContent || ''),
+            text: item.querySelector('.lead')?.textContent || '',
+          };
+        })
+    )
   );
 
 main();

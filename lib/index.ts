@@ -106,6 +106,8 @@ export const convertTime = (time: string) => {
   return matchText ? matchText.map((item) => `0${item}`.slice(-5).replace(/：/g, ':')) : undefined;
 };
 
+export const convertDate = (text: string) => text.replace(/\./g, '-');
+
 export const sliceBrackets = (text: string) =>
   text.slice(0, 1) === '「' && text.slice(-1) === '」' ? text.slice(1, text.length - 1) : text;
 
