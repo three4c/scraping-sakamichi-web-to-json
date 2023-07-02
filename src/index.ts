@@ -168,6 +168,51 @@ const main = async () => {
     return scheduleData;
   };
 
+  const convertMemberData = [
+    {
+      name: '乃木坂46',
+      color: 'purple',
+      member: field.n_member.map((item) => ({
+        ...item,
+        name: convertHalfToFull(item.name),
+      })),
+    },
+    {
+      name: '日向坂46',
+      color: 'blue',
+      member: field.h_member.map((item) => ({
+        ...item,
+        name: convertHalfToFull(item.name),
+      })),
+    },
+    {
+      name: '櫻坂46',
+      color: 'pink',
+      member: field.s_member.map((item) => ({
+        ...item,
+        name: convertHalfToFull(item.name),
+      })),
+    },
+  ];
+
+  const converTicketData = [
+    {
+      name: '乃木坂46',
+      color: 'purple',
+      ticket: field.n_ticket,
+    },
+    {
+      name: '日向坂46',
+      color: 'blue',
+      ticket: field.h_ticket,
+    },
+    {
+      name: '櫻坂46',
+      color: 'pink',
+      ticket: field.s_ticket,
+    },
+  ];
+
   const scheduleData = convertScheduleData(date);
 
   const memberData: MemberType[] = addId([
@@ -263,8 +308,12 @@ const main = async () => {
     /** FirebaseからPrismaに移管する */
     /** Firebase */
     await setDoc('schedule', convertData);
-    await setDoc('member', memberData);
-    await setDoc('ticket', ticketData);
+    await setDoc('member', convertMemberData);
+    await setDoc('ticket', converTicketData);
+  } else {
+    console.log(JSON.stringify(convertData, null, 2));
+    console.log(JSON.stringify(memberData, null, 2));
+    console.log(JSON.stringify(ticketData, null, 2));
 
     /** Prisma */
     await prisma.dates.deleteMany();
@@ -322,10 +371,6 @@ const main = async () => {
         text: item.text,
       })),
     });
-  } else {
-    console.log(JSON.stringify(convertData, null, 2));
-    console.log(JSON.stringify(memberData, null, 2));
-    console.log(JSON.stringify(ticketData, null, 2));
   }
 
   console.log('🎉 End');
