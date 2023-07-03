@@ -175,6 +175,51 @@ const main = async () => {
     return scheduleData;
   };
 
+  const convertMemberData = [
+    {
+      name: '乃木坂46',
+      color: 'purple',
+      member: field.n_member.map((item) => ({
+        ...item,
+        name: convertHalfToFull(item.name),
+      })),
+    },
+    {
+      name: '日向坂46',
+      color: 'blue',
+      member: field.h_member.map((item) => ({
+        ...item,
+        name: convertHalfToFull(item.name),
+      })),
+    },
+    {
+      name: '櫻坂46',
+      color: 'pink',
+      member: field.s_member.map((item) => ({
+        ...item,
+        name: convertHalfToFull(item.name),
+      })),
+    },
+  ];
+
+  const converTicketData = [
+    {
+      name: '乃木坂46',
+      color: 'purple',
+      ticket: field.n_ticket,
+    },
+    {
+      name: '日向坂46',
+      color: 'blue',
+      ticket: field.h_ticket,
+    },
+    {
+      name: '櫻坂46',
+      color: 'pink',
+      ticket: field.s_ticket,
+    },
+  ];
+
   const scheduleData = convertScheduleData(date);
 
   const memberData = addId<MemberType>([
@@ -266,25 +311,26 @@ const main = async () => {
     };
   });
 
-  /** FirebaseからPrismaに移管する */
-  /** Firebase */
-  await setDoc('schedule', convertData);
-  await setDoc('member', memberData);
-  await setDoc('ticket', ticketData);
+  if (isProd) {
+    /** FirebaseからPrismaに移管する */
+    /** Firebase */
+    await setDoc('schedule', convertData);
+    await setDoc('member', convertMemberData);
+    await setDoc('ticket', converTicketData);
+  } else {
+    /** Prisma */
+    await prisma.dates.deleteMany();
+    await prisma.schedules.deleteMany();
+    await prisma.members.deleteMany();
+    await prisma.tickets.deleteMany();
+    await prisma.member_schedules.deleteMany();
 
-  /** Prisma */
-  await prisma.dates.deleteMany();
-  await prisma.schedules.deleteMany();
-  await prisma.members.deleteMany();
-  await prisma.tickets.deleteMany();
-  await prisma.member_schedules.deleteMany();
-
-  await prisma.dates.createMany({
-    data: dateData.map((item) => ({
-      id: item.id,
-      date: item.date,
-    })),
-  });
+    await prisma.dates.createMany({
+      data: dateData.map((item) => ({
+        id: item.id,
+        date: item.date,
+      })),
+    });
 
   await prisma.schedules.createMany({
     data: scheduleData.map((item) => ({
@@ -319,6 +365,7 @@ const main = async () => {
     })),
   });
 
+<<<<<<< HEAD
   await prisma.tickets.createMany({
     data: ticketData.map((item) => ({
       id: item.id || 0,
@@ -328,6 +375,18 @@ const main = async () => {
       text: item.text,
     })),
   });
+=======
+    await prisma.tickets.createMany({
+      data: ticketData.map((item) => ({
+        id: item.id || 0,
+        color_id: item.colorId || '',
+        href: item.href,
+        date: item.date,
+        text: item.text,
+      })),
+    });
+  }
+>>>>>>> main
 
   console.log('🎉 End');
 };

@@ -28,11 +28,19 @@ model accounts {
 }
 
 model groups {
+<<<<<<< HEAD
   id          Int     @id @default(autoincrement())
   order       Int
   user_id     String
   color_id    String
   ticket_date String?
+=======
+  id          Int       @id @default(autoincrement())
+  order       Int
+  user_id     String
+  color_id    String
+  ticket_date DateTime?
+>>>>>>> main
 
   @@index([user_id, color_id])
 }
