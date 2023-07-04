@@ -103,6 +103,7 @@ declare global {
   interface Window {
     convertText: (text: string) => Promise<string>;
     convertTime: (time: string) => Promise<string[] | undefined>;
+    convertDate: (text: string) => Promise<string>;
     convertOver24Time: (date: DateType[]) => Promise<DateType[]>;
   }
 }

@@ -106,6 +106,8 @@ export const convertTime = (time: string) => {
   return matchText ? matchText.map((item) => `0${item}`.slice(-5).replace(/：/g, ':')) : undefined;
 };
 
+export const convertDate = (text: string) => text.replace(/\./g, '-');
+
 export const sliceBrackets = (text: string) =>
   text.slice(0, 1) === '「' && text.slice(-1) === '」' ? text.slice(1, text.length - 1) : text;
 
@@ -310,13 +312,13 @@ export const createRandomStr = () => {
   return randStr;
 };
 
-export const addColor = (array: any[], colorId: ColorType) =>
+export const addColor = <T>(array: T[], colorId: ColorType) =>
   array.map((item) => ({
     ...item,
     colorId,
   }));
 
-export const addId = (array: any[]) =>
+export const addId = <T>(array: T[]) =>
   array.map((item, index) => ({
     ...item,
     id: index + 1,
