@@ -311,385 +311,68 @@ const main = async () => {
     };
   });
 
-  if (isProd) {
-    /** FirebaseからPrismaに移管する */
-    /** Firebase */
-    await setDoc('schedule', convertData);
-    await setDoc('member', convertMemberData);
-    await setDoc('ticket', converTicketData);
-  } else {
-    /** Prisma */
-    await prisma.dates.deleteMany();
-    await prisma.schedules.deleteMany();
-    await prisma.members.deleteMany();
-    await prisma.tickets.deleteMany();
-    await prisma.member_schedules.deleteMany();
+  /** FirebaseからPrismaに移管する */
+  /** Firebase */
+  await setDoc('schedule', convertData);
+  await setDoc('member', convertMemberData);
+  await setDoc('ticket', converTicketData);
 
-    await prisma.dates.createMany({
-      data: dateData.map((item) => ({
-        id: item.id,
-        date: item.date,
-      })),
-    });
+  /** Prisma */
+  await prisma.dates.deleteMany();
+  await prisma.schedules.deleteMany();
+  await prisma.members.deleteMany();
+  await prisma.tickets.deleteMany();
+  await prisma.member_schedules.deleteMany();
 
-    await prisma.schedules.createMany({
-      data: scheduleData.map((item) => ({
-        id: item.id,
-        color_id: item.colorId || '',
-        date_id: item.dateId || 0,
-        href: item.href,
-        text: item.text,
-        category: item.category,
-        start_time: item.startTime,
-        end_time: item.endTime,
-        date_time: item.dateTime,
-      })),
-    });
-
-    await prisma.members.createMany({
-      data: memberData.map((item) => ({
-        id: item.id,
-        color_id: item.colorId || '',
-        href: item.href,
-        name: item.name,
-        hiragana: item.hiragana,
-        src: item.src,
-      })),
-    });
-
-    await prisma.member_schedules.createMany({
-      data: memberScheduleData.map((item) => ({
-        id: item.id,
-        member_id: item.memberId || 0,
-        schedule_id: item.scheduleId || 0,
-      })),
-    });
-
-    await prisma.tickets.createMany({
-      data: ticketData.map((item) => ({
-        id: item.id || 0,
-        color_id: item.colorId || '',
-        href: item.href,
-        date: item.date,
-        text: item.text,
-      })),
-    });
-  }
-
-  const main = async () => {
-    const dyParameter = `${year}${`0${month}`.slice(-2)}`;
-    const scrapingInfo: ScrapingInfoType[] = [
-      {
-        key: 'n_schedule',
-        url: `https://www.nogizaka46.com/s/n46/media/list?dy=${dyParameter}`,
-        fn: n_getSchedule,
-      },
-      {
-        key: 'n_member',
-        url: 'https://www.nogizaka46.com/s/n46/search/artist',
-        fn: n_getMember,
-      },
-      {
-        key: 'n_ticket',
-        url: `https://www.nogizaka46.com/s/n46/news/list?dy=${dyParameter}`,
-        fn: n_getTicket,
-      },
-      {
-        key: 'h_schedule',
-        url: `https://www.hinatazaka46.com/s/official/media/list?dy=${dyParameter}`,
-        fn: h_getSchedule,
-      },
-      {
-        key: 'h_member',
-        url: 'https://www.hinatazaka46.com/s/official/search/artist',
-        fn: h_getMember,
-      },
-      {
-        key: 'h_ticket',
-        url: `https://www.hinatazaka46.com/s/official/news/list?cd=event&dy=${dyParameter}`,
-        fn: h_getTicket,
-      },
-      {
-        key: 's_schedule',
-        url: `https://sakurazaka46.com/s/s46/media/list?dy=${dyParameter}`,
-        fn: s_getSchedule,
-      },
-      {
-        key: 's_member',
-        url: 'https://sakurazaka46.com/s/s46/search/artist',
-        fn: s_getMember,
-      },
-      {
-        key: 's_ticket',
-        url: `https://sakurazaka46.com/s/s46/news/list?cd=event&dy=${dyParameter}`,
-        fn: s_getTicket,
-      },
-    ];
-
-    console.log('🚀 Start');
-    const field = await scraping(scrapingInfo);
-    const data: DataType[] = [
-      {
-        name: '乃木坂46',
-        color: 'purple',
-        schedule: field.n_schedule,
-        member: field.n_member,
-      },
-      {
-        name: '日向坂46',
-        color: 'blue',
-        schedule: field.h_schedule,
-        member: field.h_member,
-      },
-      {
-        name: '櫻坂46',
-        color: 'pink',
-        schedule: field.s_schedule,
-        member: field.s_member,
-      },
-    ];
-
-    const date: DateType[] = [
-      ...addColor(field.n_schedule, 'purple'),
-      ...addColor(field.h_schedule, 'blue'),
-      ...addColor(field.s_schedule, 'pink'),
-    ];
-
-    const dateData = Array.from(
-      date.reduce((acc, cur) => acc.set(cur.date, cur), new Map<string, DateType>()).values()
-    ).map((item, index) => ({
-      id: index + 1,
+  await prisma.dates.createMany({
+    data: dateData.map((item) => ({
+      id: item.id,
       date: item.date,
-    }));
+    })),
+  });
 
-    const convertScheduleData = (array: DateType[]) => {
-      const scheduleData: ScheduleType[] = [];
-      let sumScheduleIndex = 0;
+  await prisma.schedules.createMany({
+    data: scheduleData.map((item) => ({
+      id: item.id,
+      color_id: item.colorId || '',
+      date_id: item.dateId || 0,
+      href: item.href,
+      text: item.text,
+      category: item.category,
+      start_time: item.startTime,
+      end_time: item.endTime,
+      date_time: item.dateTime,
+    })),
+  });
 
-      array.forEach((item) =>
-        item.schedule.forEach((scheduleItem, scheduleIndex) => {
-          scheduleData.push({
-            ...scheduleItem,
-            id: scheduleIndex + 1 + sumScheduleIndex,
-            dateId: dateData.find((dateItem) => dateItem.date === item.date)?.id,
-            colorId: item.colorId,
-            dateTime: scheduleItem.startTime ? `${item.date}T${scheduleItem.startTime}+09:00` : undefined,
-          });
+  await prisma.members.createMany({
+    data: memberData.map((item) => ({
+      id: item.id,
+      color_id: item.colorId || '',
+      href: item.href,
+      name: item.name,
+      hiragana: item.hiragana,
+      src: item.src,
+    })),
+  });
 
-          if (item.schedule.length - 1 === scheduleIndex) {
-            sumScheduleIndex += item.schedule.length;
-          }
-        })
-      );
+  await prisma.member_schedules.createMany({
+    data: memberScheduleData.map((item) => ({
+      id: item.id,
+      member_id: item.memberId || 0,
+      schedule_id: item.scheduleId || 0,
+    })),
+  });
 
-      return scheduleData;
-    };
-
-    const convertMemberData = [
-      {
-        name: '乃木坂46',
-        color: 'purple',
-        member: field.n_member.map((item) => ({
-          ...item,
-          name: convertHalfToFull(item.name),
-        })),
-      },
-      {
-        name: '日向坂46',
-        color: 'blue',
-        member: field.h_member.map((item) => ({
-          ...item,
-          name: convertHalfToFull(item.name),
-        })),
-      },
-      {
-        name: '櫻坂46',
-        color: 'pink',
-        member: field.s_member.map((item) => ({
-          ...item,
-          name: convertHalfToFull(item.name),
-        })),
-      },
-    ];
-
-    const converTicketData = [
-      {
-        name: '乃木坂46',
-        color: 'purple',
-        ticket: field.n_ticket,
-      },
-      {
-        name: '日向坂46',
-        color: 'blue',
-        ticket: field.h_ticket,
-      },
-      {
-        name: '櫻坂46',
-        color: 'pink',
-        ticket: field.s_ticket,
-      },
-    ];
-
-    const scheduleData = convertScheduleData(date);
-
-    const memberData: MemberType[] = addId([
-      ...addColor(
-        field.n_member.map((item) => ({
-          ...item,
-          name: convertHalfToFull(item.name),
-        })),
-        'purple'
-      ),
-      ...addColor(
-        field.h_member.map((item) => ({
-          ...item,
-          name: convertHalfToFull(item.name),
-        })),
-        'blue'
-      ),
-      ...addColor(
-        field.s_member.map((item) => ({
-          ...item,
-          name: convertHalfToFull(item.name),
-        })),
-        'pink'
-      ),
-    ]);
-
-    const ticketData: TicketType[] = addId([
-      ...addColor(field.n_ticket, 'purple'),
-      ...addColor(field.h_ticket, 'blue'),
-      ...addColor(field.s_ticket, 'pink'),
-    ]);
-
-    const convertMemberScheduleData = (array: ScheduleType[]): MemberScheduleType[] => {
-      const memberScheduleData: MemberScheduleType[] = [];
-      array.forEach((item) => {
-        const member = item.member?.map((memberItem) => ({
-          scheduleId: item.id,
-          name: convertHalfToFull(memberItem.name),
-        }));
-
-        member?.forEach((memberItem) => {
-          memberData.forEach((memberDataItem) => {
-            if (memberItem.name === memberDataItem.name) {
-              memberScheduleData.push({
-                memberId: memberDataItem.id,
-                scheduleId: item.id,
-              });
-            }
-          });
-        });
-      });
-
-      return addId(memberScheduleData);
-    };
-
-    const memberScheduleData = convertMemberScheduleData(scheduleData);
-
-    const convertData: ConvertDataType[] = data.map((item) => {
-      const member = item.member?.map((item) => ({
-        ...item,
-        name: convertHalfToFull(item.name),
-      }));
-
-      return {
-        name: item.name,
-        color: item.color,
-        schedule: item.schedule.map((_item) => ({
-          ..._item,
-          schedule: _item.schedule.map((__item) => {
-            const filterMember: MemberType[] = [];
-            member.forEach((___item) => {
-              __item.member?.forEach((____item) => {
-                if (___item.name === ____item.name) {
-                  filterMember.push(___item);
-                }
-              });
-            });
-
-            return {
-              ...__item,
-              startTime: __item.startTime,
-              endTime: __item.endTime,
-              dateTime: __item.startTime ? `${_item.date}T${__item.startTime}+09:00` : undefined,
-              text: sliceBrackets(__item.text),
-              member: filterMember.length ? filterMember : undefined,
-            };
-          }),
-        })),
-      };
-    });
-
-    if (isProd) {
-      /** FirebaseからPrismaに移管する */
-      /** Firebase */
-      await setDoc('schedule', convertData);
-      await setDoc('member', convertMemberData);
-      await setDoc('ticket', converTicketData);
-    } else {
-      console.log(JSON.stringify(convertData, null, 2));
-      console.log(JSON.stringify(memberData, null, 2));
-      console.log(JSON.stringify(ticketData, null, 2));
-
-      /** Prisma */
-      await prisma.dates.deleteMany();
-      await prisma.schedules.deleteMany();
-      await prisma.members.deleteMany();
-      await prisma.tickets.deleteMany();
-      await prisma.member_schedules.deleteMany();
-
-      await prisma.dates.createMany({
-        data: dateData.map((item) => ({
-          id: item.id,
-          date: item.date,
-        })),
-      });
-
-      await prisma.schedules.createMany({
-        data: scheduleData.map((item) => ({
-          id: item.id,
-          color_id: item.colorId || '',
-          date_id: item.dateId || 0,
-          href: item.href,
-          text: item.text,
-          category: item.category,
-          startTime: item.startTime,
-          endTime: item.endTime,
-          dateTime: item.dateTime,
-        })),
-      });
-
-      await prisma.members.createMany({
-        data: memberData.map((item) => ({
-          id: item.id,
-          color_id: item.colorId || '',
-          href: item.href,
-          name: item.name,
-          hiragana: item.hiragana,
-          src: item.src,
-        })),
-      });
-
-      await prisma.member_schedules.createMany({
-        data: memberScheduleData.map((item) => ({
-          id: item.id,
-          member_id: item.memberId || 0,
-          schedule_id: item.scheduleId || 0,
-        })),
-      });
-
-      await prisma.tickets.createMany({
-        data: ticketData.map((item) => ({
-          id: item.id || 0,
-          color_id: item.colorId || '',
-          href: item.href,
-          date: item.date,
-          text: item.text,
-        })),
-      });
-    }
-  };
+  await prisma.tickets.createMany({
+    data: ticketData.map((item) => ({
+      id: item.id || 0,
+      color_id: item.colorId || '',
+      href: item.href,
+      date: item.date,
+      text: item.text,
+    })),
+  });
 
   console.log('🎉 End');
 };
