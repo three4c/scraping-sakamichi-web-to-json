@@ -79,9 +79,9 @@ model members {
 }
 
 model tickets {
-  id       Int    @id @default(autoincrement())
+  id       Int      @id @default(autoincrement())
   href     String
-  date     String
+  date     DateTime
   text     String
   color_id String
 
