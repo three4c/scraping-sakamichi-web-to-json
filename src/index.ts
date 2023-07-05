@@ -369,7 +369,7 @@ const main = async () => {
       id: item.id || 0,
       color_id: item.colorId || '',
       href: item.href,
-      date: item.date,
+      date: new Date(item.date),
       text: item.text,
     })),
   });
