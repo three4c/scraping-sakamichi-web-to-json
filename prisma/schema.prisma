@@ -110,7 +110,7 @@ model member_schedules {
   @@index([member_id, schedule_id])
 }
 
-model dates {
-  id   Int    @id @default(autoincrement())
-  date String
+model date_schedules {
+  id   Int      @id @default(autoincrement())
+  date DateTime
 }
