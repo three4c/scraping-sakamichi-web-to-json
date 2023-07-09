@@ -311,23 +311,25 @@ const main = async () => {
     };
   });
 
-  /** FirebaseからPrismaに移管する */
-  /** Firebase */
-  await setDoc('schedule', convertData);
-  await setDoc('member', convertMemberData);
-  await setDoc('ticket', converTicketData);
+  if (isProd) {
+    /** FirebaseからPrismaに移管する */
+    /** Firebase */
+    await setDoc('schedule', convertData);
+    await setDoc('member', convertMemberData);
+    await setDoc('ticket', converTicketData);
+  }
 
   /** Prisma */
-  await prisma.dates.deleteMany();
+  await prisma.date_schedules.deleteMany();
   await prisma.schedules.deleteMany();
   await prisma.members.deleteMany();
   await prisma.tickets.deleteMany();
   await prisma.member_schedules.deleteMany();
 
-  await prisma.dates.createMany({
+  await prisma.date_schedules.createMany({
     data: dateData.map((item) => ({
       id: item.id,
-      date: item.date,
+      date: new Date(item.date),
     })),
   });
 
