@@ -81,7 +81,7 @@ const main = async () => {
     },
     {
       key: 'n_ticket',
-      url: `https://www.nogizaka46.com/s/n46/news/list?dy=${dyParameter}`,
+      url: `https://www.nogizaka46.com/s/n46/news/list?dy=${dyParameter}&ct=live`,
       fn: n_getTicket,
     },
     {
@@ -96,7 +96,7 @@ const main = async () => {
     },
     {
       key: 'h_ticket',
-      url: `https://www.hinatazaka46.com/s/official/news/list?cd=event&dy=${dyParameter}`,
+      url: `https://www.hinatazaka46.com/s/official/news/list?cd=event&dy=${dyParameter}&cd=event`,
       fn: h_getTicket,
     },
     {
@@ -111,7 +111,7 @@ const main = async () => {
     },
     {
       key: 's_ticket',
-      url: `https://sakurazaka46.com/s/s46/news/list?cd=event&dy=${dyParameter}`,
+      url: `https://sakurazaka46.com/s/s46/news/list?cd=event&dy=${dyParameter}&cd=event`,
       fn: s_getTicket,
     },
   ];
