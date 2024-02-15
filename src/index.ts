@@ -320,11 +320,11 @@ const main = async () => {
   }
 
   /** Prisma */
-  await prisma.date_schedules.deleteMany();
-  await prisma.schedules.deleteMany();
-  await prisma.members.deleteMany();
-  await prisma.tickets.deleteMany();
-  await prisma.member_schedules.deleteMany();
+  // await prisma.date_schedules.deleteMany();
+  // await prisma.schedules.deleteMany();
+  // await prisma.members.deleteMany();
+  // await prisma.tickets.deleteMany();
+  // await prisma.member_schedules.deleteMany();
 
   await prisma.date_schedules.createMany({
     data: dateData.map((item) => ({
