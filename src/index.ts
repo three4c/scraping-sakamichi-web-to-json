@@ -317,6 +317,8 @@ const main = async () => {
     await setDoc('schedule', convertData);
     await setDoc('member', convertMemberData);
     await setDoc('ticket', converTicketData);
+
+    console.log(JSON.stringify(convertData));
   }
 
   /** Prisma */
