@@ -387,6 +387,7 @@ const main = async () => {
 /** スクレイピング */
 const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   const browser = await puppeteer.launch({
+    args: ['--no-sandbox'],
     headless: true,
     slowMo: 0,
   });
