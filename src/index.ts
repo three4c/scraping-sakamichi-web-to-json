@@ -1,3 +1,4 @@
+import { setTimeout } from 'node:timers/promises';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import { initializeApp, cert, ServiceAccount } from 'firebase-admin/app';
@@ -15,7 +16,7 @@ import {
   convertPackDate,
   getFirstOrEndDay,
 } from 'lib';
-import puppeteer, { SerializableOrJSHandle } from 'puppeteer';
+import * as puppeteer from 'puppeteer';
 import {
   ScrapingInfoType,
   DateType,
@@ -317,8 +318,9 @@ const main = async () => {
     await setDoc('schedule', convertData);
     await setDoc('member', convertMemberData);
     await setDoc('ticket', converTicketData);
-
-    console.log(JSON.stringify(convertData));
+    console.log('schedule', JSON.stringify(convertData));
+    console.log('member', JSON.stringify(convertMemberData));
+    console.log('ticket', JSON.stringify(converTicketData));
   }
 
   /** Prisma */
@@ -412,7 +414,7 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 
   for (const item of scrapingInfo) {
     await page.goto(item.url);
-    await page.waitForTimeout(SLEEP);
+    await setTimeout(SLEEP);
 
     if (item.key === 'n_schedule' || item.key === 'h_schedule' || item.key === 's_schedule') {
       result[item.key] = await item.fn(page);
@@ -434,9 +436,9 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 /** 乃木坂 */
 const n_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
   await page.click('.b--lng');
-  await page.waitForTimeout(SLEEP * 2);
+  await setTimeout(SLEEP * 2);
   await page.click('.b--lng__one.js-lang-swich.hv--op.ja');
-  await page.waitForTimeout(SLEEP * 2);
+  await setTimeout(SLEEP * 2);
 
   const getDate = async (args: ArgsType) =>
     await page.$$eval(
@@ -487,7 +489,7 @@ const n_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
           return [];
         }
       },
-      args as unknown as SerializableOrJSHandle
+      args
     );
 
   let date: DateType[] = await getDate({
@@ -573,9 +575,9 @@ const n_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
 /** 日向坂 */
 const h_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
   await page.click('.wovn-lang-selector');
-  await page.waitForTimeout(SLEEP);
+  await setTimeout(SLEEP);
   await page.click('[data-value="ja"]');
-  await page.waitForTimeout(SLEEP);
+  await setTimeout(SLEEP);
 
   const getDate = async (args: ArgsType) =>
     await page.$$eval(
@@ -629,7 +631,7 @@ const h_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
           return [];
         }
       },
-      args as unknown as SerializableOrJSHandle
+      args
     );
 
   let date: DateType[] = await getDate({
@@ -668,7 +670,7 @@ const h_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
       );
 
       date[i].schedule[j].member = member.length ? member : undefined;
-      await page.waitForTimeout(SLEEP);
+      await setTimeout(SLEEP);
     }
   }
 
@@ -712,9 +714,9 @@ const h_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
 
 const s_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
   await page.click('.wovn-lang-selector');
-  await page.waitForTimeout(SLEEP);
+  await setTimeout(SLEEP);
   await page.click('[data-value="ja"]');
-  await page.waitForTimeout(SLEEP);
+  await setTimeout(SLEEP);
 
   const getDate = async (args: ArgsType) =>
     await page.$$eval(
@@ -793,7 +795,7 @@ const s_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
           return [];
         }
       },
-      args as unknown as SerializableOrJSHandle
+      args
     );
 
   let date: DateType[] = await getDate({
