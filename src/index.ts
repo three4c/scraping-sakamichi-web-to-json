@@ -318,10 +318,11 @@ const main = async () => {
     await setDoc('schedule', convertData);
     await setDoc('member', convertMemberData);
     await setDoc('ticket', converTicketData);
-    console.log('schedule', JSON.stringify(convertData));
-    console.log('member', JSON.stringify(convertMemberData));
-    console.log('ticket', JSON.stringify(converTicketData));
   }
+
+  console.log('schedule', JSON.stringify(convertData));
+  console.log('member', JSON.stringify(convertMemberData));
+  console.log('ticket', JSON.stringify(converTicketData));
 
   /** Prisma */
   // await prisma.date_schedules.deleteMany();
