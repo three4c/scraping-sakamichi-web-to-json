@@ -25,11 +25,11 @@
     "dotenv": "^16.0.0",
     "firebase-admin": "^10.1.0",
     "fs": "^0.0.1-security",
-    "puppeteer": "^13.4.1"
+    "puppeteer": "^23.5.1"
   },
   "devDependencies": {
     "@types/node": "^17.0.21",
-    "@types/puppeteer": "^5.4.5",
+    "@types/puppeteer": "^7.0.4",
     "@typescript-eslint/eslint-plugin": "^5.21.0",
     "@typescript-eslint/parser": "^5.21.0",
     "eslint": "^8.14.0",
