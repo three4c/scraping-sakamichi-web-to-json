@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import * as puppeteer from 'puppeteer';
 
 export type ConvertDataType = Omit<DataType, 'member'>;
 
