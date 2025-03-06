@@ -552,7 +552,9 @@ const n_getMember = async (page: puppeteer.Page): Promise<MemberType[]> => {
     window.scrollTo(0, document.body.scrollHeight);
   });
 
-  return page.$$eval('.m--mem', (element) =>
+  await setTimeout(SLEEP);
+
+  return await page.$$eval('.m--mem', (element) =>
     Promise.all(
       element
         .filter((item) => item.querySelector('.m--mem__name')?.textContent)
