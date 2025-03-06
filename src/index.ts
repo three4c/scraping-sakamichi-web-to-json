@@ -34,7 +34,7 @@ dotenv.config();
 
 const SLEEP = 1000;
 
-const isProd = process.env.NODE_ENV !== 'development';
+const isProd = process.env.NODE_ENV === 'development';
 
 const serviceAccount: ServiceAccount = {
   projectId: process.env.PROJECT_ID,
@@ -203,7 +203,7 @@ const main = async () => {
     },
   ];
 
-  const converTicketData = [
+  const convertTicketData = [
     {
       name: '乃木坂46',
       color: 'purple',
@@ -317,12 +317,12 @@ const main = async () => {
     /** Firebase */
     await setDoc('schedule', convertData);
     await setDoc('member', convertMemberData);
-    await setDoc('ticket', converTicketData);
+    await setDoc('ticket', convertTicketData);
   }
 
   console.log('schedule', JSON.stringify(convertData));
   console.log('member', JSON.stringify(convertMemberData));
-  console.log('ticket', JSON.stringify(converTicketData));
+  console.log('ticket', JSON.stringify(convertTicketData));
 
   /** Prisma */
   // await prisma.date_schedules.deleteMany();
@@ -552,7 +552,7 @@ const n_getMember = async (page: puppeteer.Page): Promise<MemberType[]> => {
     window.scrollTo(0, document.body.scrollHeight);
   });
 
-  await setTimeout(SLEEP);
+  await setTimeout(SLEEP * 2);
 
   return await page.$$eval('.m--mem', (element) =>
     Promise.all(
