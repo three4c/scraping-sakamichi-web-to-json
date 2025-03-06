@@ -60,9 +60,9 @@ const setDoc = async (doc: string, group: any) => {
 const { year, month, day } = isProd
   ? getToday()
   : {
-      year: 2023,
-      month: 6,
-      day: 30,
+      year: 2025,
+      month: 3,
+      day: 6,
     };
 
 const prisma = new PrismaClient();
@@ -547,8 +547,12 @@ const n_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
 };
 
 /** n_getScheduleで言語を切り替えているため、こちらではそのままスクレイピングを行う */
-const n_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
-  page.$$eval('.m--mem', (element) =>
+const n_getMember = async (page: puppeteer.Page): Promise<MemberType[]> => {
+  await page.evaluate(() => {
+    window.scrollTo(0, document.body.scrollHeight);
+  });
+
+  return page.$$eval('.m--mem', (element) =>
     Promise.all(
       element
         .filter((item) => item.querySelector('.m--mem__name')?.textContent)
@@ -560,6 +564,7 @@ const n_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
         }))
     )
   );
+};
 
 const n_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
   page.$$eval('.m--nsone', (element) =>
