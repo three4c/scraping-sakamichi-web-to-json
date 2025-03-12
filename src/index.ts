@@ -34,7 +34,7 @@ dotenv.config();
 
 const SLEEP = 1000;
 
-const isProd = process.env.NODE_ENV === 'development';
+const isProd = process.env.NODE_ENV !== 'development';
 
 const serviceAccount: ServiceAccount = {
   projectId: process.env.PROJECT_ID,
