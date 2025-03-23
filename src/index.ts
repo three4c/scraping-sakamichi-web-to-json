@@ -16,7 +16,7 @@ import {
   convertPackDate,
   getFirstOrEndDay,
 } from 'lib';
-import * as puppeteer from 'puppeteer';
+import * as playwright from 'playwright';
 import {
   ScrapingInfoType,
   DateType,
@@ -386,7 +386,7 @@ const main = async () => {
 
 /** スクレイピング */
 const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
-  const browser = await puppeteer.launch({
+  const browser = await playwright.chromium.launch({
     args: ['--no-sandbox'],
     headless: true,
     slowMo: 0,
@@ -412,7 +412,7 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   await page.exposeFunction('convertDate', convertDate);
   await page.exposeFunction('convertTime', convertTime);
   await page.exposeFunction('convertOver24Time', convertOver24Time);
-  await page.setViewport({ width: 320, height: 640 });
+  await page.setViewportSize({ width: 320, height: 640 });
 
   for (const item of scrapingInfo) {
     await page.goto(item.url);
@@ -436,7 +436,7 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 };
 
 /** 乃木坂 */
-const n_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
+const n_getSchedule = async (page: playwright.Page): Promise<DateType[]> => {
   await page.click('.b--lng');
   await setTimeout(SLEEP * 2);
   await page.click('.b--lng__one.js-lang-swich.hv--op.ja');
@@ -547,7 +547,7 @@ const n_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
 };
 
 /** n_getScheduleで言語を切り替えているため、こちらではそのままスクレイピングを行う */
-const n_getMember = async (page: puppeteer.Page): Promise<MemberType[]> => {
+const n_getMember = async (page: playwright.Page): Promise<MemberType[]> => {
   await page.evaluate(() => {
     window.scrollTo(0, document.body.scrollHeight);
   });
@@ -568,7 +568,7 @@ const n_getMember = async (page: puppeteer.Page): Promise<MemberType[]> => {
   );
 };
 
-const n_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
+const n_getTicket = async (page: playwright.Page): Promise<TicketType[]> =>
   page.$$eval('.m--nsone', (element) =>
     Promise.all(
       element
@@ -582,7 +582,7 @@ const n_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
   );
 
 /** 日向坂 */
-const h_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
+const h_getSchedule = async (page: playwright.Page): Promise<DateType[]> => {
   await page.click('.wovn-lang-selector');
   await setTimeout(SLEEP);
   await page.click('[data-value="ja"]');
@@ -686,7 +686,7 @@ const h_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
   return convertOver24Time(convertPackDate(year, month, day, date));
 };
 
-const h_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
+const h_getMember = async (page: playwright.Page): Promise<MemberType[]> =>
   page.$$eval('.sorted.sort-default .p-member__item', (element) =>
     Promise.all(
       element
@@ -704,7 +704,7 @@ const h_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
     )
   );
 
-const h_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
+const h_getTicket = async (page: playwright.Page): Promise<TicketType[]> =>
   page.$$eval('.p-news__item', (element) =>
     Promise.all(
       element
@@ -721,7 +721,7 @@ const h_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
     )
   );
 
-const s_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
+const s_getSchedule = async (page: playwright.Page): Promise<DateType[]> => {
   await page.click('.wovn-lang-selector');
   await setTimeout(SLEEP);
   await page.click('[data-value="ja"]');
@@ -834,7 +834,7 @@ const s_getSchedule = async (page: puppeteer.Page): Promise<DateType[]> => {
   return convertOver24Time(convertPackDate(year, month, day, date));
 };
 
-const s_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
+const s_getMember = async (page: playwright.Page): Promise<MemberType[]> =>
   page.$$eval('.box', (element) =>
     Promise.all(
       element
@@ -853,7 +853,7 @@ const s_getMember = async (page: puppeteer.Page): Promise<MemberType[]> =>
     )
   );
 
-const s_getTicket = async (page: puppeteer.Page): Promise<TicketType[]> =>
+const s_getTicket = async (page: playwright.Page): Promise<TicketType[]> =>
   page.$$eval('.cate-event.box', (element) =>
     Promise.all(
       element
