@@ -1,6 +1,9 @@
 name: Run Playwright
 
 on:
+  push:
+    branches:
+      - main
   schedule:
     - cron: '0 0-14/2 * * *' # 9:00 - 23:00
 jobs:
