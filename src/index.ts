@@ -1,4 +1,3 @@
-import { setTimeout } from 'node:timers/promises';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import { initializeApp, cert, ServiceAccount } from 'firebase-admin/app';
@@ -412,11 +411,11 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
   await page.exposeFunction('convertDate', convertDate);
   await page.exposeFunction('convertTime', convertTime);
   await page.exposeFunction('convertOver24Time', convertOver24Time);
-  await page.setViewportSize({ width: 320, height: 640 });
+  await page.setViewportSize({ width: 1920, height: 1080 });
 
   for (const item of scrapingInfo) {
     await page.goto(item.url);
-    await setTimeout(SLEEP);
+    await page.waitForTimeout(SLEEP);
 
     if (item.key === 'n_schedule' || item.key === 'h_schedule' || item.key === 's_schedule') {
       result[item.key] = await item.fn(page);
@@ -438,9 +437,9 @@ const scraping = async (scrapingInfo: ScrapingInfoType[]) => {
 /** 乃木坂 */
 const n_getSchedule = async (page: playwright.Page): Promise<DateType[]> => {
   await page.click('.b--lng');
-  await setTimeout(SLEEP * 2);
+  await page.waitForTimeout(SLEEP);
   await page.click('.b--lng__one.js-lang-swich.hv--op.ja');
-  await setTimeout(SLEEP * 2);
+  await page.waitForTimeout(SLEEP);
 
   const getDate = async (args: ArgsType) =>
     await page.$$eval(
@@ -552,7 +551,7 @@ const n_getMember = async (page: playwright.Page): Promise<MemberType[]> => {
     window.scrollTo(0, document.body.scrollHeight);
   });
 
-  await setTimeout(SLEEP * 2);
+  await page.waitForTimeout(SLEEP);
 
   return await page.$$eval('.m--mem', (element) =>
     Promise.all(
@@ -584,9 +583,9 @@ const n_getTicket = async (page: playwright.Page): Promise<TicketType[]> =>
 /** 日向坂 */
 const h_getSchedule = async (page: playwright.Page): Promise<DateType[]> => {
   await page.click('.wovn-lang-selector');
-  await setTimeout(SLEEP);
+  await page.waitForTimeout(SLEEP);
   await page.click('[data-value="ja"]');
-  await setTimeout(SLEEP);
+  await page.waitForTimeout(SLEEP);
 
   const getDate = async (args: ArgsType) =>
     await page.$$eval(
@@ -679,7 +678,7 @@ const h_getSchedule = async (page: playwright.Page): Promise<DateType[]> => {
       );
 
       date[i].schedule[j].member = member.length ? member : undefined;
-      await setTimeout(SLEEP);
+      await page.waitForTimeout(SLEEP);
     }
   }
 
@@ -723,9 +722,9 @@ const h_getTicket = async (page: playwright.Page): Promise<TicketType[]> =>
 
 const s_getSchedule = async (page: playwright.Page): Promise<DateType[]> => {
   await page.click('.wovn-lang-selector');
-  await setTimeout(SLEEP);
+  await page.waitForTimeout(SLEEP);
   await page.click('[data-value="ja"]');
-  await setTimeout(SLEEP);
+  await page.waitForTimeout(SLEEP);
 
   const getDate = async (args: ArgsType) =>
     await page.$$eval(
