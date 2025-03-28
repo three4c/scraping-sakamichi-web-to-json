@@ -60,9 +60,9 @@ const setDoc = async (doc: string, group: any) => {
 const { year, month, day } = isProd
   ? getToday()
   : {
-      year: 2025,
-      month: 3,
-      day: 6,
+      year: 2022,
+      month: 6,
+      day: 14,
     };
 
 const prisma = new PrismaClient();
@@ -318,68 +318,68 @@ const main = async () => {
     await setDoc('schedule', convertData);
     await setDoc('member', convertMemberData);
     await setDoc('ticket', convertTicketData);
+  } else {
+    console.log('schedule', JSON.stringify(convertData));
+    console.log('member', JSON.stringify(convertMemberData));
+    console.log('ticket', JSON.stringify(convertTicketData));
+
+    /** Prisma */
+    await prisma.date_schedules.deleteMany();
+    await prisma.schedules.deleteMany();
+    await prisma.members.deleteMany();
+    await prisma.tickets.deleteMany();
+    await prisma.member_schedules.deleteMany();
+
+    await prisma.date_schedules.createMany({
+      data: dateData.map((item) => ({
+        id: item.id,
+        date: new Date(item.date),
+      })),
+    });
+
+    await prisma.schedules.createMany({
+      data: scheduleData.map((item) => ({
+        id: item.id,
+        color_id: item.colorId || '',
+        date_id: item.dateId || 0,
+        href: item.href,
+        text: item.text,
+        category: item.category,
+        start_time: item.startTime,
+        end_time: item.endTime,
+        date_time: item.dateTime,
+      })),
+    });
+
+    await prisma.members.createMany({
+      data: memberData.map((item) => ({
+        id: item.id,
+        color_id: item.colorId || '',
+        href: item.href,
+        name: item.name,
+        hiragana: item.hiragana,
+        src: item.src,
+      })),
+    });
+
+    await prisma.member_schedules.createMany({
+      data: memberScheduleData.map((item) => ({
+        id: item.id,
+        member_id: item.memberId || 0,
+        schedule_id: item.scheduleId || 0,
+      })),
+    });
+
+    await prisma.tickets.createMany({
+      data: ticketData.map((item) => ({
+        id: item.id || 0,
+        color_id: item.colorId || '',
+        href: item.href,
+        date: new Date(item.date),
+        text: item.text,
+      })),
+    });
   }
-
-  console.log('schedule', JSON.stringify(convertData));
-  console.log('member', JSON.stringify(convertMemberData));
-  console.log('ticket', JSON.stringify(convertTicketData));
-
-  /** Prisma */
-  // await prisma.date_schedules.deleteMany();
-  // await prisma.schedules.deleteMany();
-  // await prisma.members.deleteMany();
-  // await prisma.tickets.deleteMany();
-  // await prisma.member_schedules.deleteMany();
-  //
-  // await prisma.date_schedules.createMany({
-  //   data: dateData.map((item) => ({
-  //     id: item.id,
-  //     date: new Date(item.date),
-  //   })),
-  // });
-  //
-  // await prisma.schedules.createMany({
-  //   data: scheduleData.map((item) => ({
-  //     id: item.id,
-  //     color_id: item.colorId || '',
-  //     date_id: item.dateId || 0,
-  //     href: item.href,
-  //     text: item.text,
-  //     category: item.category,
-  //     start_time: item.startTime,
-  //     end_time: item.endTime,
-  //     date_time: item.dateTime,
-  //   })),
-  // });
-  //
-  // await prisma.members.createMany({
-  //   data: memberData.map((item) => ({
-  //     id: item.id,
-  //     color_id: item.colorId || '',
-  //     href: item.href,
-  //     name: item.name,
-  //     hiragana: item.hiragana,
-  //     src: item.src,
-  //   })),
-  // });
-  //
-  // await prisma.member_schedules.createMany({
-  //   data: memberScheduleData.map((item) => ({
-  //     id: item.id,
-  //     member_id: item.memberId || 0,
-  //     schedule_id: item.scheduleId || 0,
-  //   })),
-  // });
-  //
-  // await prisma.tickets.createMany({
-  //   data: ticketData.map((item) => ({
-  //     id: item.id || 0,
-  //     color_id: item.colorId || '',
-  //     href: item.href,
-  //     date: new Date(item.date),
-  //     text: item.text,
-  //   })),
-  // });
 
   console.log('🎉 End');
 };
