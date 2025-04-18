@@ -15,6 +15,7 @@ import {
   convertHalfToFull,
   convertPackDate,
   getFirstOrEndDay,
+  exportData,
 } from 'lib';
 import * as playwright from 'playwright';
 import {
@@ -60,9 +61,9 @@ const setDoc = async (doc: string, group: any) => {
 const { year, month, day } = isProd
   ? getToday()
   : {
-      year: 2022,
+      year: 2023,
       month: 6,
-      day: 14,
+      day: 30,
     };
 
 const prisma = new PrismaClient();
@@ -378,6 +379,14 @@ const main = async () => {
         date: new Date(item.date),
         text: item.text,
       })),
+    });
+
+    exportData({
+      date: dateData,
+      schedules: scheduleData,
+      members: memberData,
+      tickets: ticketData,
+      memberSchedules: memberScheduleData,
     });
   }
 
