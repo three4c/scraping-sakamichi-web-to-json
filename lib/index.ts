@@ -1,6 +1,26 @@
-import { ColorType, DateType, ScheduleType, ScheduleFilterType, ArgsType } from 'types';
+import { writeFileSync } from 'fs';
+import {
+  ColorType,
+  DateType,
+  ScheduleType,
+  ScheduleFilterType,
+  ArgsType,
+  MemberType,
+  TicketType,
+  MemberScheduleType,
+} from 'types';
 
 export const isArgsType = (arg: any): arg is ArgsType => arg;
+
+export const exportData = (data: {
+  date: Pick<DateType, 'id' | 'date'>[];
+  schedules: ScheduleType[];
+  members: MemberType[];
+  tickets: TicketType[];
+  memberSchedules: MemberScheduleType[];
+}) => {
+  writeFileSync('prisma/data.json', JSON.stringify(data, null, 2));
+};
 
 export const getToday = () => {
   const today = new Date(Date.now() + (new Date().getTimezoneOffset() + 9 * 60) * 60 * 1000);
