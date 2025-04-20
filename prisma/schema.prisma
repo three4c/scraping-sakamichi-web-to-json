@@ -14,24 +14,26 @@ model accounts {
   type                String
   provider            String
   provider_account_id String
-  refresh_token       String? @db.Text
-  access_token        String? @db.Text
+  refresh_token       String?
+  access_token        String?
   expires_at          Int?
   token_type          String?
   scope               String?
-  id_token            String? @db.Text
+  id_token            String?
   session_state       String?
+  users               users   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([provider, provider_account_id])
-  @@index([user_id])
 }
 
 model groups {
   id          Int       @id @default(autoincrement())
   order       Int
+  ticket_date DateTime?
   user_id     String
   color_id    String
-  ticket_date DateTime?
+  colors      colors    @relation(fields: [color_id], references: [id])
+  users       users     @relation(fields: [user_id], references: [id])
 
   @@index([user_id, color_id])
 }
@@ -41,38 +43,38 @@ model sessions {
   session_token String   @unique
   user_id       String
   expires       DateTime
-
-  @@index([user_id])
+  users         users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model users {
-  id             String    @id
+  id             String     @id
   name           String?
-  email          String?   @unique
+  email          String?    @unique
   email_verified DateTime?
   image          String?
-}
-
-model verificationtokens {
-  identifier String
-  token      String
-  expires    DateTime
-
-  @@unique([identifier, token])
+  accounts       accounts[]
+  groups         groups[]
+  sessions       sessions[]
 }
 
 model colors {
-  id   String @id @unique
-  name String
+  id        String      @id @unique
+  name      String
+  groups    groups[]
+  members   members[]
+  schedules schedules[]
+  tickets   tickets[]
 }
 
 model members {
-  id       Int    @id @default(autoincrement())
-  name     String
-  hiragana String
-  src      String
-  href     String
-  color_id String
+  id               Int                @id @default(autoincrement())
+  name             String
+  hiragana         String
+  src              String
+  href             String
+  color_id         String
+  member_schedules member_schedules[]
+  colors           colors             @relation(fields: [color_id], references: [id])
 
   @@index([color_id])
 }
@@ -83,33 +85,48 @@ model tickets {
   date     DateTime
   text     String
   color_id String
+  colors   colors   @relation(fields: [color_id], references: [id])
 
   @@index([color_id])
 }
 
 model schedules {
-  id         Int     @id @default(autoincrement())
-  category   String?
-  href       String
-  text       String
-  color_id   String
-  date_id    Int
-  date_time  String?
-  end_time   String?
-  start_time String?
+  id               Int                @id @default(autoincrement())
+  category         String?
+  href             String
+  text             String
+  start_time       String?
+  end_time         String?
+  date_time        String?
+  color_id         String
+  date_id          Int
+  member_schedules member_schedules[]
+  colors           colors             @relation(fields: [color_id], references: [id])
+  date_schedules   date_schedules     @relation(fields: [date_id], references: [id], onDelete: Cascade)
 
   @@index([color_id, date_id])
 }
 
 model member_schedules {
-  id          Int @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   member_id   Int
   schedule_id Int
+  members     members   @relation(fields: [member_id], references: [id], onDelete: Cascade)
+  schedules   schedules @relation(fields: [schedule_id], references: [id], onDelete: Cascade)
 
   @@index([member_id, schedule_id])
 }
 
 model date_schedules {
-  id   Int      @id @default(autoincrement())
-  date DateTime
+  id        Int         @id @default(autoincrement())
+  date      DateTime
+  schedules schedules[]
+}
+
+model verification_tokens {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
