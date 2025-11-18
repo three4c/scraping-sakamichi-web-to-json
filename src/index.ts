@@ -855,7 +855,7 @@ const s_getMember = async (page: playwright.Page): Promise<MemberType[]> =>
             href: href ? `https://sakurazaka46.com${href}` : '',
             name: await window.convertText(item.querySelector('.name')?.textContent || ''),
             hiragana: await window.convertText(item.querySelector('.kana')?.textContent || ''),
-            src: src ? `https://sakurazaka46.com${src}` : '',
+            src: src || '',
           };
         })
     )
